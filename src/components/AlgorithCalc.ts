@@ -38,15 +38,25 @@ export const runAlgorithm = (
 	}
 }
 
+// Only BUY if status is SELL or HOLD and only SELL if status is BUY
+let currentBuySellStatus: IndicationType = IndicationType.HODL
+
 export const analyzeCoppock = (
 	coppockValues: number[],
 	globalConfig: GlobalConfig
 ): IndicationType => {
 	// Analize if previous N values were above or below 0
-	// If current value is above 0 and previous N values were below = BUY
-	// If current value is below 0 and previous N values were above = SELL
+	// If current value is above 0 and previous N(buySellBuffer) values were below = BUY
+	// If current value is below 0 and previous N(buySellBuffer) values were above = SELL
 
 	const valuesToCompare = coppockValues.slice(0, globalConfig.buySellBuffer + 1)
+	if (valuesToCompare.length < globalConfig.buySellBuffer + 1) {
+		const tempArr = Array.from(
+			{ length: globalConfig.buySellBuffer + 1 },
+			() => 0
+		)
+		valuesToCompare.push(...tempArr)
+	}
 	const isValueIndicatingBuy = valuesToCompare[0] > 0
 	let isIndicationValid = false
 
@@ -69,10 +79,16 @@ export const analyzeCoppock = (
 	}
 
 	if (isIndicationValid) {
-		if (isValueIndicatingBuy) {
+		if (isValueIndicatingBuy && currentBuySellStatus !== IndicationType.BUY) {
+			currentBuySellStatus = IndicationType.BUY
 			return IndicationType.BUY
+		} else if (
+			!isValueIndicatingBuy &&
+			currentBuySellStatus === IndicationType.BUY
+		) {
+			currentBuySellStatus = IndicationType.SELL
+			return IndicationType.SELL
 		}
-		return IndicationType.SELL
 	}
-	return IndicationType.STAY
+	return IndicationType.HODL
 }

@@ -2,6 +2,7 @@ import { getPrice, ping } from './components/CryptoData'
 import { displayCurrentValueMessage } from './utils/Messenger'
 import {
 	clearLog,
+	logBuySellIndication,
 	logCurrentCoppockValue,
 	logError,
 	logInfo,
@@ -11,7 +12,7 @@ import { analyzeCoppock, runAlgorithm } from './components/AlgorithCalc'
 require('dotenv').config()
 
 const globalConfig: GlobalConfig = {
-	tickInterval: 0.5,
+	tickInterval: 0.02,
 	minInitialValues: 15,
 	minAlgorithmValues: 25,
 	longROC: 14,
@@ -22,12 +23,20 @@ const globalConfig: GlobalConfig = {
 
 const ethereumTether: number[] = []
 const coppockValues: number[] = []
-const buySellIndication: Map<string, string> = new Map()
+const buySellIndication: Map<string, [number, string]> = new Map()
 
 const tick = async (): Promise<void> => {
 	await getPrice('ethereum,tether', 'usd')
 		.then((response) => {
-			const marketPrice = response.ethereum.usd / response.tether.usd
+			const precision = 100 // 2 decimals
+			const randomnum =
+				Math.floor(
+					Math.random() * (1.1 * precision - 0.95 * precision) +
+						0.95 * precision
+				) /
+				(1 * precision)
+			const marketPrice =
+				(response.ethereum.usd / response.tether.usd) * randomnum
 			const dateObject = new Date(response.ethereum.last_updated_at * 1000)
 			const dateFormatted = dateObject.toLocaleString()
 			ethereumTether.unshift(marketPrice)
@@ -47,19 +56,19 @@ const tick = async (): Promise<void> => {
 				const dateFormatted = dateObject.toLocaleString()
 				switch (analyzeResult) {
 					case IndicationType.BUY:
-						buySellIndication.set(`BUY: ${marketPrice}`, dateFormatted)
+						buySellIndication.set('BUY', [marketPrice, dateFormatted])
 						break
 					case IndicationType.SELL:
-						buySellIndication.set(`SELL: ${marketPrice}`, dateFormatted)
+						buySellIndication.set('SELL', [marketPrice, dateFormatted])
 						break
-					case IndicationType.STAY:
+					case IndicationType.HODL:
 						break
 					default:
 						break
 				}
 
 				logCurrentCoppockValue(coppockValues[0] || 0)
-				logInfo(buySellIndication)
+				logBuySellIndication(buySellIndication)
 			}
 		})
 		.catch((err) => logError(err))

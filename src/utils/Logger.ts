@@ -26,7 +26,6 @@ export const logSuccess = (data: unknown): void => {
 }
 
 export const logCoinValue = (time: string, value: number): void => {
-	//console.clear()
 	console.log(
 		chalk.green('Current value: ') +
 			chalk.green.bold(value.toString()) +
@@ -35,10 +34,17 @@ export const logCoinValue = (time: string, value: number): void => {
 }
 
 export const logCurrentCoppockValue = (value: number): void => {
-	//console.clear()
 	console.log(
 		chalk.green('Current Coppock value: ') + chalk.green.bold(value.toString())
 	)
+}
+
+export const logBuySellIndication = (
+	map: Map<string, [number, string]>
+): void => {
+	map.forEach((value, key) => {
+		console.log(chalk.green.bold(`${key}: `) + chalk.green(value.toString()))
+	})
 }
 
 export const clearLog = (): void => {

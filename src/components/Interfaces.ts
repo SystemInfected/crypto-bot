@@ -19,5 +19,5 @@ export interface GlobalConfig {
 export enum IndicationType {
 	BUY,
 	SELL,
-	STAY,
+	HODL,
 }
