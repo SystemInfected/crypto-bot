@@ -28,15 +28,7 @@ const buySellIndication: Map<string, [number, string]> = new Map()
 const tick = async (): Promise<void> => {
 	await getPrice('ethereum,tether', 'usd')
 		.then((response) => {
-			const precision = 100 // 2 decimals
-			const randomnum =
-				Math.floor(
-					Math.random() * (1.1 * precision - 0.95 * precision) +
-						0.95 * precision
-				) /
-				(1 * precision)
-			const marketPrice =
-				(response.ethereum.usd / response.tether.usd) * randomnum
+			const marketPrice = response.ethereum.usd / response.tether.usd
 			const dateObject = new Date(response.ethereum.last_updated_at * 1000)
 			const dateFormatted = dateObject.toLocaleString()
 			ethereumTether.unshift(marketPrice)
