@@ -33,3 +33,7 @@ export const logCoinValue = (time: string, value: number): void => {
 			` Updated: ${time}`
 	)
 }
+
+export const clearLog = (): void => {
+	console.clear()
+}
