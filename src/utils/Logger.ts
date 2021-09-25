@@ -2,13 +2,34 @@
 import chalk from 'chalk'
 
 export const logInfo = (data: unknown): void => {
-	console.log(chalk.blue(`${JSON.stringify(data)}`))
+	if (typeof data === 'string') {
+		console.log(chalk.blue(`${data}`))
+	} else {
+		console.log(chalk.blue(`${JSON.stringify(data)}`))
+	}
 }
 
 export const logError = (data: unknown): void => {
-	console.log(chalk.red(`${JSON.stringify(data)}`))
+	if (typeof data === 'string') {
+		console.log(chalk.red(`${data}`))
+	} else {
+		console.log(chalk.red(`${JSON.stringify(data)}`))
+	}
 }
 
 export const logSuccess = (data: unknown): void => {
-	console.log(chalk.green(`${JSON.stringify(data)}`))
+	if (typeof data === 'string') {
+		console.log(chalk.green(`${data}`))
+	} else {
+		console.log(chalk.green(`${JSON.stringify(data)}`))
+	}
+}
+
+export const logCoinValue = (time: string, value: number): void => {
+	//console.clear()
+	console.log(
+		chalk.green('Current value: ') +
+			chalk.green.bold(value.toString()) +
+			` Updated: ${time}`
+	)
 }
