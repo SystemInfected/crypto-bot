@@ -11,8 +11,12 @@ import { GlobalConfig, IndicationType } from './components/Interfaces'
 import { analyzeCoppock, runAlgorithm } from './components/AlgorithmCalc'
 require('dotenv').config()
 
+interface StartupData {
+	time: string
+}
+
 const globalConfig: GlobalConfig = {
-	tickInterval: 2,
+	tickInterval: 3,
 	minInitialValues: 15,
 	minAlgorithmValues: 25,
 	longROC: 14,
@@ -21,6 +25,7 @@ const globalConfig: GlobalConfig = {
 	buySellBuffer: 4,
 }
 
+const startupData: StartupData = { time: '' }
 const ethereumTether: number[] = []
 const coppockValues: number[] = []
 const buySellIndication: Map<string, [number, string]> = new Map()
@@ -33,6 +38,7 @@ const tick = async (): Promise<void> => {
 			const dateFormatted = dateObject.toLocaleString()
 			ethereumTether.unshift(marketPrice)
 			displayCurrentValueMessage(
+				startupData.time,
 				marketPrice,
 				dateFormatted,
 				ethereumTether,
@@ -67,6 +73,9 @@ const tick = async (): Promise<void> => {
 }
 
 const run = (): void => {
+	const dateObject = new Date()
+	const dateFormatted = dateObject.toLocaleString()
+	startupData.time = dateFormatted
 	tick()
 	setInterval(tick, globalConfig.tickInterval * 1000 * 60)
 }

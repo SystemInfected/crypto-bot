@@ -1,7 +1,8 @@
 import { GlobalConfig } from '../components/Interfaces'
-import { logInfo, logCoinValue, clearLog } from './Logger'
+import { logInfo, logCoinValue, clearLog, logHeader } from './Logger'
 
 export const displayCurrentValueMessage = (
+	startTime: string,
 	marketPrice: number,
 	dateFormatted: string,
 	ethereumTether: number[],
@@ -11,6 +12,7 @@ export const displayCurrentValueMessage = (
 		if (ethereumTether.length > 1) {
 			clearLog()
 		}
+		logHeader(startTime)
 		if (ethereumTether.length < globalConfig.minInitialValues) {
 			logInfo(
 				`Firing up the engines!\nPlease allow ${(globalConfig.minInitialValues -
@@ -26,6 +28,7 @@ export const displayCurrentValueMessage = (
 		}
 	} else {
 		clearLog()
+		logHeader(startTime)
 		logInfo('Algorithm is running!')
 	}
 	logCoinValue(dateFormatted, marketPrice)

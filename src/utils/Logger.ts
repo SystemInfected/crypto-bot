@@ -1,6 +1,13 @@
 /* eslint-disable no-console */
 import chalk from 'chalk'
 
+export const logHeader = (time: string): void => {
+	console.log(
+		chalk.whiteBright.bold('Crypto Bot') +
+			chalk.whiteBright(` | Running since ${time.toString()}`)
+	)
+}
+
 export const logInfo = (data: unknown): void => {
 	if (typeof data === 'string') {
 		console.log(chalk.blue(`${data}`))

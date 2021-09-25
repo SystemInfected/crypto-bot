@@ -13,7 +13,7 @@ const getWMA = (ROCsum: number[], WMArate: number): number => {
 	let weightedValuesSum = 0
 	let totalWeight = 0
 	for (let weight = 1; weight < WMArate + 1; weight++) {
-		const WMA = ROCsum[weight - 1] * weight
+		const WMA = ROCsum[WMArate - weight] * weight
 		totalWeight += weight
 		weightedValuesSum += WMA
 	}
