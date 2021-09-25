@@ -8,7 +8,7 @@ import {
 	logInfo,
 } from './utils/Logger'
 import { GlobalConfig, IndicationType } from './components/Interfaces'
-import { analyzeCoppock, runAlgorithm } from './components/AlgorithCalc'
+import { analyzeCoppock, runAlgorithm } from './components/AlgorithmCalc'
 require('dotenv').config()
 
 const globalConfig: GlobalConfig = {
