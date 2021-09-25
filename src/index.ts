@@ -12,7 +12,7 @@ import { analyzeCoppock, runAlgorithm } from './components/AlgorithCalc'
 require('dotenv').config()
 
 const globalConfig: GlobalConfig = {
-	tickInterval: 0.02,
+	tickInterval: 2,
 	minInitialValues: 15,
 	minAlgorithmValues: 25,
 	longROC: 14,
