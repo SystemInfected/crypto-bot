@@ -12,4 +12,12 @@ export interface GlobalConfig {
 	shortROC: number
 	/** Usually WMA 10 */
 	WMA: number
+	/** Finetuning of when to buy or sell */
+	buySellBuffer: number
+}
+
+export enum IndicationType {
+	BUY,
+	SELL,
+	STAY,
 }

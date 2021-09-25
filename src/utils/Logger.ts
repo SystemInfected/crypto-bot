@@ -34,6 +34,13 @@ export const logCoinValue = (time: string, value: number): void => {
 	)
 }
 
+export const logCurrentCoppockValue = (value: number): void => {
+	//console.clear()
+	console.log(
+		chalk.green('Current Coppock value: ') + chalk.green.bold(value.toString())
+	)
+}
+
 export const clearLog = (): void => {
 	console.clear()
 }

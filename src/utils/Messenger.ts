@@ -1,5 +1,5 @@
 import { GlobalConfig } from '../components/Interfaces'
-import { logInfo, logCoinValue, logSuccess, clearLog } from './Logger'
+import { logInfo, logCoinValue, clearLog } from './Logger'
 
 export const displayCurrentValueMessage = (
 	marketPrice: number,
@@ -29,5 +29,4 @@ export const displayCurrentValueMessage = (
 		logInfo('Algorithm is running!')
 	}
 	logCoinValue(dateFormatted, marketPrice)
-	logSuccess(ethereumTether)
 }
