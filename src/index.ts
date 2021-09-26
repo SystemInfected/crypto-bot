@@ -8,7 +8,12 @@ import {
 	logInfo,
 } from './utils/Logger'
 import { GlobalConfig, IndicationType } from './components/Interfaces'
-import { analyzeCoppock, runAlgorithm } from './components/AlgorithmCalc'
+import {
+	analyzeATR,
+	analyzeCoppock,
+	runATRAlgorithm,
+	runCoppockAlgorithm,
+} from './components/AlgorithmCalc'
 require('dotenv').config()
 
 interface StartupData {
@@ -28,7 +33,10 @@ const globalConfig: GlobalConfig = {
 const startupData: StartupData = { time: '' }
 const ethereumTether: number[] = []
 const coppockValues: number[] = []
-const buySellIndication: Map<string, [number, string]> = new Map()
+const atrValues: { atr: number; price: number }[] = []
+let currentBuySellStatus: IndicationType = IndicationType.HODL
+
+const buySellIndication: Map<string, [number, number, string]> = new Map()
 
 const tick = async (): Promise<void> => {
 	await getPrice('ethereum,tether', 'usd')
@@ -45,24 +53,50 @@ const tick = async (): Promise<void> => {
 				globalConfig
 			)
 			if (ethereumTether.length >= globalConfig.minInitialValues) {
-				const coppockValue = runAlgorithm(ethereumTether, globalConfig)
+				const dateObject = new Date()
+				const dateFormatted = dateObject.toLocaleString()
+
+				const coppockValue = runCoppockAlgorithm(ethereumTether, globalConfig)
 				if (typeof coppockValue === 'number') {
 					coppockValues.unshift(coppockValue)
 				}
-				const analyzeResult = analyzeCoppock(coppockValues, globalConfig)
-				const dateObject = new Date()
-				const dateFormatted = dateObject.toLocaleString()
-				switch (analyzeResult) {
-					case IndicationType.BUY:
-						buySellIndication.set('BUY', [marketPrice, dateFormatted])
-						break
-					case IndicationType.SELL:
-						buySellIndication.set('SELL', [marketPrice, dateFormatted])
-						break
-					case IndicationType.HODL:
-						break
-					default:
-						break
+
+				if (currentBuySellStatus !== IndicationType.BUY) {
+					const analyzeBuyResult = analyzeCoppock(coppockValues, globalConfig)
+					switch (analyzeBuyResult) {
+						case IndicationType.BUY: {
+							const atrValue = runATRAlgorithm(ethereumTether, globalConfig)
+							buySellIndication.set('BUY', [
+								marketPrice,
+								atrValue,
+								dateFormatted,
+							])
+							atrValues.unshift({ atr: atrValue, price: marketPrice })
+							currentBuySellStatus = IndicationType.BUY
+							break
+						}
+						case IndicationType.HODL:
+							break
+						default:
+							break
+					}
+				} else if (currentBuySellStatus === IndicationType.BUY) {
+					const analyzeSellResult = analyzeATR(atrValues[0], marketPrice)
+					switch (analyzeSellResult) {
+						case IndicationType.SELL: {
+							buySellIndication.set('SELL', [
+								marketPrice,
+								marketPrice - atrValues[0].price,
+								dateFormatted,
+							])
+							currentBuySellStatus = IndicationType.SELL
+							break
+						}
+						case IndicationType.HODL:
+							break
+						default:
+							break
+					}
 				}
 
 				logCurrentCoppockValue(coppockValues[0] || 0)

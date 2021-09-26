@@ -20,7 +20,7 @@ const getWMA = (ROCsum: number[], WMArate: number): number => {
 	return weightedValuesSum / totalWeight
 }
 
-export const runAlgorithm = (
+export const runCoppockAlgorithm = (
 	ethereumTether: number[],
 	globalConfig: GlobalConfig
 ): number | void => {
@@ -38,6 +38,24 @@ export const runAlgorithm = (
 	}
 }
 
+export const runATRAlgorithm = (
+	ethereumTether: number[],
+	globalConfig: GlobalConfig
+): number => {
+	const TRValues: number[] = []
+	for (let i = 1; i < globalConfig.WMA + 1; i++) {
+		if (ethereumTether[i] > ethereumTether[i + 1]) {
+			const TR = ethereumTether[i] - ethereumTether[i + 1]
+			TRValues.push(TR)
+		} else {
+			const TR = ethereumTether[i + 1] - ethereumTether[i]
+			TRValues.push(TR)
+		}
+	}
+	const ATR = getWMA(TRValues, globalConfig.WMA)
+	return ATR
+}
+
 // Only BUY if status is SELL or HOLD and only SELL if status is BUY
 let currentBuySellStatus: IndicationType = IndicationType.HODL
 
@@ -47,7 +65,6 @@ export const analyzeCoppock = (
 ): IndicationType => {
 	// Analize if previous N values were above or below 0
 	// If current value is above 0 and previous N(buySellBuffer) values were below = BUY
-	// If current value is below 0 and previous N(buySellBuffer) values were above = SELL
 
 	const valuesToCompare = coppockValues.slice(0, globalConfig.buySellBuffer + 1)
 	if (valuesToCompare.length < globalConfig.buySellBuffer + 1) {
@@ -69,12 +86,8 @@ export const analyzeCoppock = (
 				break
 			}
 		} else {
-			if (valuesToCompare[i] > 0) {
-				isIndicationValid = true
-			} else {
-				isIndicationValid = false
-				break
-			}
+			isIndicationValid = false
+			break
 		}
 	}
 
@@ -82,13 +95,21 @@ export const analyzeCoppock = (
 		if (isValueIndicatingBuy && currentBuySellStatus !== IndicationType.BUY) {
 			currentBuySellStatus = IndicationType.BUY
 			return IndicationType.BUY
-		} else if (
-			!isValueIndicatingBuy &&
-			currentBuySellStatus === IndicationType.BUY
-		) {
-			currentBuySellStatus = IndicationType.SELL
-			return IndicationType.SELL
 		}
+	}
+	return IndicationType.HODL
+}
+
+export const analyzeATR = (
+	atrValues: { atr: number; price: number },
+	marketPrice: number
+): IndicationType => {
+	// Analize if previous ATR is reach, if so SELL
+
+	const { atr, price } = atrValues
+
+	if (marketPrice >= price + atr) {
+		return IndicationType.SELL
 	}
 	return IndicationType.HODL
 }

@@ -4,7 +4,7 @@ import chalk from 'chalk'
 export const logHeader = (time: string): void => {
 	console.log(
 		chalk.whiteBright.bold('Crypto Bot') +
-			chalk.whiteBright(` | Running since ${time.toString()}`)
+			chalk.whiteBright(` | Started: ${time.toString()}`)
 	)
 }
 
@@ -47,10 +47,13 @@ export const logCurrentCoppockValue = (value: number): void => {
 }
 
 export const logBuySellIndication = (
-	map: Map<string, [number, string]>
+	map: Map<string, [number, number, string]>
 ): void => {
 	map.forEach((value, key) => {
-		console.log(chalk.green.bold(`${key}: `) + chalk.green(value.toString()))
+		console.log(
+			chalk.green.bold(`${key}: `) +
+				chalk.green(`${value[0]} - ${value[2]} | ${value[1]}`)
+		)
 	})
 }
 
