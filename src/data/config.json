@@ -1,0 +1,19 @@
+{
+	"coin": {
+		"short": "ETH",
+		"coingeckoId": "ethereum"
+	},
+	"stableCoin": {
+		"short": "USDT",
+		"coingeckoId": "tether"
+	},
+	"tickInterval": 3,
+	"minInitialValues": 15,
+	"minAlgorithmValues": 25,
+	"longROC": 14,
+	"shortROC": 11,
+	"WMA": 10,
+	"buyBuffer": 4,
+	"sellBuffer": 2,
+	"ATRmultiplier": 2.5
+}

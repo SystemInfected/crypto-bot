@@ -5,24 +5,24 @@ export const displayCurrentValueMessage = (
 	startTime: string,
 	marketPrice: number,
 	dateFormatted: string,
-	ethereumTether: number[],
+	coinValueFromStableCoin: number[],
 	globalConfig: GlobalConfig
 ): void => {
-	if (ethereumTether.length < globalConfig.minAlgorithmValues) {
-		if (ethereumTether.length > 1) {
+	if (coinValueFromStableCoin.length < globalConfig.minAlgorithmValues) {
+		if (coinValueFromStableCoin.length > 1) {
 			clearLog()
 		}
 		logHeader(startTime)
-		if (ethereumTether.length < globalConfig.minInitialValues) {
+		if (coinValueFromStableCoin.length < globalConfig.minInitialValues) {
 			logInfo(
 				`Firing up the engines!\nPlease allow ${(globalConfig.minInitialValues -
-					ethereumTether.length) *
+					coinValueFromStableCoin.length) *
 					globalConfig.tickInterval} minute(s) to pass for the algorithm to collect enough data`
 			)
 		} else {
 			logInfo(
 				`Algorithm is starting up...\nPlease allow ${(globalConfig.minAlgorithmValues -
-					ethereumTether.length) *
+					coinValueFromStableCoin.length) *
 					globalConfig.tickInterval} minute(s) more to pass for the algorithm to collect enough data`
 			)
 		}
@@ -31,5 +31,5 @@ export const displayCurrentValueMessage = (
 		logHeader(startTime)
 		logInfo('Algorithm is running!')
 	}
-	logCoinValue(dateFormatted, marketPrice)
+	logCoinValue(globalConfig, dateFormatted, marketPrice)
 }

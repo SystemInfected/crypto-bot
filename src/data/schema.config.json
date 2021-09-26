@@ -1,0 +1,80 @@
+{
+	"type": "object",
+	"properties": {
+		"coin": {
+			"type": "object",
+			"description": "Cryptocurrency to trade (i.e. Etherium)",
+			"properties": {
+				"short": {
+					"type": "string"
+				},
+				"coingeckoId": {
+					"type": "string"
+				}
+			},
+			"required": ["short", "coingeckoId"]
+		},
+		"stableCoin": {
+			"type": "object",
+			"description": "Stable coin to compare against (Tether recommended)",
+			"properties": {
+				"short": {
+					"type": "string"
+				},
+				"coingeckoId": {
+					"type": "string"
+				}
+			},
+			"required": ["short", "coingeckoId"]
+		},
+		"tickInterval": {
+			"type": "integer",
+			"description": "Interval (minutes) inbetween each request for current values. Coingecko caching is about 2-3 minutes so anything under that is unnecessary"
+		},
+		"minInitialValues": {
+			"type": "integer",
+			"description": "For ROC 14 at least 15 intervals are needed"
+		},
+		"minAlgorithmValues": {
+			"type": "integer",
+			"description": "For WMA 10 of ROC 14 at least 25 intervals are needed"
+		},
+		"longROC": {
+			"type": "integer",
+			"description": "Usually ROC 14"
+		},
+		"shortROC": {
+			"type": "integer",
+			"description": "Usually ROC 11"
+		},
+		"WMA": {
+			"type": "integer",
+			"description": "Usually WMA 10"
+		},
+		"buyBuffer": {
+			"type": "integer",
+			"description": "Finetuning of when to buy"
+		},
+		"sellBuffer": {
+			"type": "integer",
+			"description": "Finetuning of when to sell"
+		},
+		"ATRmultiplier": {
+			"type": "number",
+			"description": "Multiplier of ATR to set sell point"
+		}
+	},
+	"required": [
+		"coin",
+		"stableCoin",
+		"tickInterval",
+		"minInitialValues",
+		"minAlgorithmValues",
+		"longROC",
+		"shortROC",
+		"WMA",
+		"buyBuffer",
+		"sellBuffer",
+		"ATRmultiplier"
+	]
+}

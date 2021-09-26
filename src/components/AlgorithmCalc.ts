@@ -2,9 +2,9 @@ import { GlobalConfig, IndicationType } from './Interfaces'
 
 const ROCsum: number[] = []
 
-const getROC = (ethereumTether: number[], ROCrate: number): number => {
-	const currentValue = ethereumTether[0]
-	const pastValue = ethereumTether[ROCrate]
+const getROC = (coinValueFromStableCoin: number[], ROCrate: number): number => {
+	const currentValue = coinValueFromStableCoin[0]
+	const pastValue = coinValueFromStableCoin[ROCrate]
 	const ROC = ((currentValue - pastValue) / pastValue) * 100
 	return ROC
 }
@@ -21,17 +21,17 @@ const getWMA = (ROCsum: number[], WMArate: number): number => {
 }
 
 export const runCoppockAlgorithm = (
-	ethereumTether: number[],
+	coinValueFromStableCoin: number[],
 	globalConfig: GlobalConfig
 ): number | void => {
-	if (ethereumTether.length >= globalConfig.minInitialValues) {
+	if (coinValueFromStableCoin.length >= globalConfig.minInitialValues) {
 		// Calculate sum of short ROC and long ROC
-		const short = getROC(ethereumTether, globalConfig.shortROC)
-		const long = getROC(ethereumTether, globalConfig.longROC)
+		const short = getROC(coinValueFromStableCoin, globalConfig.shortROC)
+		const long = getROC(coinValueFromStableCoin, globalConfig.longROC)
 		const sum = short + long
 		ROCsum.unshift(sum)
 	}
-	if (ethereumTether.length >= globalConfig.minAlgorithmValues) {
+	if (coinValueFromStableCoin.length >= globalConfig.minAlgorithmValues) {
 		// Calculate WMA of short ROC and long ROC
 		const currentWMA = getWMA(ROCsum, globalConfig.WMA)
 		return currentWMA
@@ -39,16 +39,16 @@ export const runCoppockAlgorithm = (
 }
 
 export const runATRAlgorithm = (
-	ethereumTether: number[],
+	coinValueFromStableCoin: number[],
 	globalConfig: GlobalConfig
 ): number => {
 	const TRValues: number[] = []
 	for (let i = 1; i < globalConfig.WMA + 1; i++) {
-		if (ethereumTether[i] > ethereumTether[i + 1]) {
-			const TR = ethereumTether[i] - ethereumTether[i + 1]
+		if (coinValueFromStableCoin[i] > coinValueFromStableCoin[i + 1]) {
+			const TR = coinValueFromStableCoin[i] - coinValueFromStableCoin[i + 1]
 			TRValues.push(TR)
 		} else {
-			const TR = ethereumTether[i + 1] - ethereumTether[i]
+			const TR = coinValueFromStableCoin[i + 1] - coinValueFromStableCoin[i]
 			TRValues.push(TR)
 		}
 	}
@@ -64,14 +64,11 @@ export const analyzeCoppock = (
 	globalConfig: GlobalConfig
 ): IndicationType => {
 	// Analize if previous N values were above or below 0
-	// If current value is above 0 and previous N(buySellBuffer) values were below = BUY
+	// If current value is above 0 and previous N(buyBuffer) values were below = BUY
 
-	const valuesToCompare = coppockValues.slice(0, globalConfig.buySellBuffer + 1)
-	if (valuesToCompare.length < globalConfig.buySellBuffer + 1) {
-		const tempArr = Array.from(
-			{ length: globalConfig.buySellBuffer + 1 },
-			() => 0
-		)
+	const valuesToCompare = coppockValues.slice(0, globalConfig.buyBuffer + 1)
+	if (valuesToCompare.length < globalConfig.buyBuffer + 1) {
+		const tempArr = Array.from({ length: globalConfig.buyBuffer + 1 }, () => 0)
 		valuesToCompare.push(...tempArr)
 	}
 	const isValueIndicatingBuy = valuesToCompare[0] > 0

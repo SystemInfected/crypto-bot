@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import chalk from 'chalk'
+import { GlobalConfig, IndicationType } from '../components/Interfaces'
 
 export const logHeader = (time: string): void => {
 	console.log(
@@ -32,10 +33,16 @@ export const logSuccess = (data: unknown): void => {
 	}
 }
 
-export const logCoinValue = (time: string, value: number): void => {
+export const logCoinValue = (
+	config: GlobalConfig,
+	time: string,
+	value: number
+): void => {
 	console.log(
 		chalk.green('Current value: ') +
-			chalk.green.bold(value.toString()) +
+			chalk.green.bold(
+				`${config.coin.short} (${value.toString()} ${config.stableCoin.short})`
+			) +
 			` Updated: ${time}`
 	)
 }
@@ -46,14 +53,37 @@ export const logCurrentCoppockValue = (value: number): void => {
 	)
 }
 
+export const logCurrentATRValue = (
+	config: GlobalConfig,
+	value: number
+): void => {
+	console.log(
+		chalk.green('ATR to trigger SELL: ') +
+			chalk.green.bold(`${value.toString()}(x${config.ATRmultiplier})`)
+	)
+}
+
 export const logBuySellIndication = (
-	map: Map<string, [number, number, string]>
+	map: Map<string, [GlobalConfig, IndicationType, number, number]>
 ): void => {
 	map.forEach((value, key) => {
-		console.log(
-			chalk.green.bold(`${key}: `) +
-				chalk.green(`${value[0]} - ${value[2]} | ${value[1]}`)
-		)
+		if (value[1] === IndicationType.BUY) {
+			console.log(
+				chalk.green(`${key}: `) +
+					chalk.green.bold('BUY ') +
+					chalk.green(
+						`${value[0].coin.short} (${value[2]} ${value[0].stableCoin.short}) | ATR:${value[1]}`
+					)
+			)
+		} else if (value[1] === IndicationType.SELL) {
+			console.log(
+				chalk.green(`${key}: `) +
+					chalk.green.bold('SELL ') +
+					chalk.green(
+						`${value[0].coin.short} (${value[2]} ${value[0].stableCoin.short}) | GAIN:${value[1]} ${value[0].stableCoin.short}`
+					)
+			)
+		}
 	})
 }
 

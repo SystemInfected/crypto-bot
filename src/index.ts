@@ -3,6 +3,7 @@ import { displayCurrentValueMessage } from './utils/Messenger'
 import {
 	clearLog,
 	logBuySellIndication,
+	logCurrentATRValue,
 	logCurrentCoppockValue,
 	logError,
 	logInfo,
@@ -14,49 +15,59 @@ import {
 	runATRAlgorithm,
 	runCoppockAlgorithm,
 } from './components/AlgorithmCalc'
+import config from './data/config.json'
+import configSchema from './data/schema.config.json'
 require('dotenv').config()
+import Ajv from 'ajv'
+const ajv = new Ajv()
 
 interface StartupData {
 	time: string
 }
+const validate = ajv.compile<GlobalConfig>(configSchema)
 
-const globalConfig: GlobalConfig = {
-	tickInterval: 3,
-	minInitialValues: 15,
-	minAlgorithmValues: 25,
-	longROC: 14,
-	shortROC: 11,
-	WMA: 10,
-	buySellBuffer: 4,
-}
+const globalConfig: GlobalConfig = config
 
 const startupData: StartupData = { time: '' }
-const ethereumTether: number[] = []
+const coinValueFromStableCoin: number[] = []
 const coppockValues: number[] = []
 const atrValues: { atr: number; price: number }[] = []
 let currentBuySellStatus: IndicationType = IndicationType.HODL
 
-const buySellIndication: Map<string, [number, number, string]> = new Map()
+const buySellIndication: Map<
+	string,
+	[GlobalConfig, IndicationType, number, number]
+> = new Map()
 
 const tick = async (): Promise<void> => {
-	await getPrice('ethereum,tether', 'usd')
+	await getPrice(
+		`${globalConfig.coin.coingeckoId},${globalConfig.stableCoin.coingeckoId}`,
+		'usd'
+	)
 		.then((response) => {
-			const marketPrice = response.ethereum.usd / response.tether.usd
-			const dateObject = new Date(response.ethereum.last_updated_at * 1000)
+			const marketPrice =
+				response[globalConfig.coin.coingeckoId].usd /
+				response[globalConfig.stableCoin.coingeckoId].usd
+			const dateObject = new Date(
+				response[globalConfig.coin.coingeckoId].last_updated_at * 1000
+			)
 			const dateFormatted = dateObject.toLocaleString()
-			ethereumTether.unshift(marketPrice)
+			coinValueFromStableCoin.unshift(marketPrice)
 			displayCurrentValueMessage(
 				startupData.time,
 				marketPrice,
 				dateFormatted,
-				ethereumTether,
+				coinValueFromStableCoin,
 				globalConfig
 			)
-			if (ethereumTether.length >= globalConfig.minInitialValues) {
+			if (coinValueFromStableCoin.length >= globalConfig.minInitialValues) {
 				const dateObject = new Date()
 				const dateFormatted = dateObject.toLocaleString()
 
-				const coppockValue = runCoppockAlgorithm(ethereumTether, globalConfig)
+				const coppockValue = runCoppockAlgorithm(
+					coinValueFromStableCoin,
+					globalConfig
+				)
 				if (typeof coppockValue === 'number') {
 					coppockValues.unshift(coppockValue)
 				}
@@ -65,11 +76,15 @@ const tick = async (): Promise<void> => {
 					const analyzeBuyResult = analyzeCoppock(coppockValues, globalConfig)
 					switch (analyzeBuyResult) {
 						case IndicationType.BUY: {
-							const atrValue = runATRAlgorithm(ethereumTether, globalConfig)
-							buySellIndication.set('BUY', [
+							const atrValue = runATRAlgorithm(
+								coinValueFromStableCoin,
+								globalConfig
+							)
+							buySellIndication.set(dateFormatted, [
+								globalConfig,
+								IndicationType.BUY,
 								marketPrice,
 								atrValue,
-								dateFormatted,
 							])
 							atrValues.unshift({ atr: atrValue, price: marketPrice })
 							currentBuySellStatus = IndicationType.BUY
@@ -81,13 +96,15 @@ const tick = async (): Promise<void> => {
 							break
 					}
 				} else if (currentBuySellStatus === IndicationType.BUY) {
+					logCurrentATRValue(globalConfig, atrValues[0].atr)
 					const analyzeSellResult = analyzeATR(atrValues[0], marketPrice)
 					switch (analyzeSellResult) {
 						case IndicationType.SELL: {
-							buySellIndication.set('SELL', [
+							buySellIndication.set(dateFormatted, [
+								globalConfig,
+								IndicationType.SELL,
 								marketPrice,
 								marketPrice - atrValues[0].price,
-								dateFormatted,
 							])
 							currentBuySellStatus = IndicationType.SELL
 							break
@@ -119,6 +136,11 @@ logInfo('Connecting to crypto server...')
 ping()
 	.then((data) => {
 		logInfo(data.gecko_says)
-		run()
+		if (validate(globalConfig)) {
+			logInfo('Config is validated')
+			run()
+		} else {
+			logError(validate.errors)
+		}
 	})
 	.catch((err) => logError(err))
