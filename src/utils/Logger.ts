@@ -43,7 +43,7 @@ export const logCoinValue = (
 			chalk.green.bold(
 				`${config.coin.short} (${value.toString()} ${config.stableCoin.short})`
 			) +
-			` Updated: ${time}`
+			chalk.white(` Updated: ${time}`)
 	)
 }
 
