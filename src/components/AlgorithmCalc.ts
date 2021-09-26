@@ -1,6 +1,7 @@
 import { GlobalConfig, IndicationType } from './Interfaces'
 
 const ROCsum: number[] = []
+let ATRDelayCheck = 0
 
 const getROC = (coinValueFromStableCoin: number[], ROCrate: number): number => {
 	const currentValue = coinValueFromStableCoin[0]
@@ -99,14 +100,21 @@ export const analyzeCoppock = (
 
 export const analyzeATR = (
 	atrValues: { atr: number; price: number },
-	marketPrice: number
+	marketPrice: number,
+	config: GlobalConfig
 ): IndicationType => {
 	// Analize if previous ATR is reach, if so SELL
 
 	const { atr, price } = atrValues
 
-	if (marketPrice >= price + atr) {
+	if (marketPrice >= price + atr * config.ATRmultiplier) {
 		return IndicationType.SELL
+	} else if (marketPrice >= price + atr) {
+		if (ATRDelayCheck === config.sellBuffer) {
+			return IndicationType.SELL
+		} else {
+			ATRDelayCheck++
+		}
 	}
 	return IndicationType.HODL
 }

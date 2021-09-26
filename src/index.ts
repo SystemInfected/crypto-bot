@@ -97,7 +97,11 @@ const tick = async (): Promise<void> => {
 					}
 				} else if (currentBuySellStatus === IndicationType.BUY) {
 					logCurrentATRValue(globalConfig, atrValues[0].atr)
-					const analyzeSellResult = analyzeATR(atrValues[0], marketPrice)
+					const analyzeSellResult = analyzeATR(
+						atrValues[0],
+						marketPrice,
+						globalConfig
+					)
 					switch (analyzeSellResult) {
 						case IndicationType.SELL: {
 							buySellIndication.set(dateFormatted, [
