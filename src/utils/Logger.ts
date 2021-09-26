@@ -72,7 +72,7 @@ export const logBuySellIndication = (
 				chalk.green(`${key}: `) +
 					chalk.green.bold('BUY ') +
 					chalk.green(
-						`${value[0].coin.short} (${value[2]} ${value[0].stableCoin.short}) | ATR:${value[1]}`
+						`${value[0].coin.short} (${value[2]} ${value[0].stableCoin.short}) | ATR:${value[3]}`
 					)
 			)
 		} else if (value[1] === IndicationType.SELL) {
@@ -80,7 +80,7 @@ export const logBuySellIndication = (
 				chalk.green(`${key}: `) +
 					chalk.green.bold('SELL ') +
 					chalk.green(
-						`${value[0].coin.short} (${value[2]} ${value[0].stableCoin.short}) | GAIN:${value[1]} ${value[0].stableCoin.short}`
+						`${value[0].coin.short} (${value[2]} ${value[0].stableCoin.short}) | GAIN:${value[3]} ${value[0].stableCoin.short}`
 					)
 			)
 		}
