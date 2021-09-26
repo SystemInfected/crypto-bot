@@ -28,7 +28,7 @@
 			"required": ["short", "coingeckoId"]
 		},
 		"tickInterval": {
-			"type": "integer",
+			"type": "number",
 			"description": "Interval (minutes) inbetween each request for current values. Coingecko caching is about 2-3 minutes so anything under that is unnecessary"
 		},
 		"minInitialValues": {
