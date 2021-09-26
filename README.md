@@ -14,5 +14,5 @@ _ATT: I am no trading expert, use this at your own risk_
 - [ ] Test and fine tune algorithms until good BUY/SELL results
 - [ ] Connect to Graph frontend
 - [ ] Connect to exchange
-- [ ] Log buy/sell to file (for tax reports)
+- [ ] Log BUY/SELL to file (for tax reports)
 - [ ] Earn money
