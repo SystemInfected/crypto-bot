@@ -13,10 +13,13 @@
 	"dependencies": {
 		"@types/react": "^17.0.24",
 		"@types/react-dom": "^17.0.9",
+		"@types/styled-components": "^5.1.14",
 		"axios": "^0.21.4",
 		"react": "^17.0.2",
 		"react-dom": "^17.0.2",
-		"sass": "^1.42.1"
+		"recharts": "^2.1.4",
+		"sass": "^1.42.1",
+		"styled-components": "^5.3.1"
 	},
 	"devDependencies": {
 		"parcel-bundler": "^1.9.4",
