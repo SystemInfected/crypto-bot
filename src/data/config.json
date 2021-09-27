@@ -14,6 +14,7 @@
 	"shortROC": 11,
 	"WMA": 10,
 	"buyBuffer": 4,
+	"falsePositiveBuffer": 0.6,
 	"sellBuffer": 2,
 	"ATRmultiplier": 2.5
 }

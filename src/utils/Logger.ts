@@ -5,7 +5,9 @@ import { GlobalConfig, IndicationType } from '../components/Interfaces'
 export const logHeader = (time: string): void => {
 	console.log(
 		chalk.whiteBright.bold('Crypto Bot') +
-			chalk.whiteBright(` | Started: ${time.toString()}`)
+			chalk.whiteBright(
+				` | Started: ${time.toString()}\nGraph frontend: http://localhost:3030`
+			)
 	)
 }
 
@@ -64,23 +66,29 @@ export const logCurrentATRValue = (
 }
 
 export const logBuySellIndication = (
-	map: Map<string, [GlobalConfig, IndicationType, number, number]>
+	buySellIndicationArr: Array<{
+		time: string
+		config: GlobalConfig
+		status: IndicationType
+		price: number
+		result: number
+	}>
 ): void => {
-	map.forEach((value, key) => {
-		if (value[1] === IndicationType.BUY) {
+	buySellIndicationArr.forEach((buySellIndication) => {
+		if (buySellIndication.status === IndicationType.BUY) {
 			console.log(
-				chalk.green(`${key}: `) +
+				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('BUY ') +
 					chalk.green(
-						`${value[0].coin.short} (${value[2]} ${value[0].stableCoin.short}) | ATR:${value[3]}`
+						`${buySellIndication.config.coin.short} (${buySellIndication.price} ${buySellIndication.config.stableCoin.short}) | ATR:${buySellIndication.result}`
 					)
 			)
-		} else if (value[1] === IndicationType.SELL) {
+		} else if (buySellIndication.status === IndicationType.SELL) {
 			console.log(
-				chalk.green(`${key}: `) +
+				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('SELL ') +
 					chalk.green(
-						`${value[0].coin.short} (${value[2]} ${value[0].stableCoin.short}) | GAIN:${value[3]} ${value[0].stableCoin.short}`
+						`${buySellIndication.config.coin.short} (${buySellIndication.price} ${buySellIndication.config.stableCoin.short}) | GAIN:${buySellIndication.result} ${buySellIndication.config.stableCoin.short}`
 					)
 			)
 		}

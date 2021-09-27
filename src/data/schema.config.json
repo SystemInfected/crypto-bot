@@ -55,6 +55,10 @@
 			"type": "integer",
 			"description": "Finetuning of when to buy"
 		},
+		"falsePositiveBuffer": {
+			"type": "number",
+			"description": "Multiplier of 24h price change to avoid buying at false positive (too close to daily high)"
+		},
 		"sellBuffer": {
 			"type": "integer",
 			"description": "Finetuning of when to sell"

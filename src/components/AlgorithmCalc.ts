@@ -57,9 +57,6 @@ export const runATRAlgorithm = (
 	return ATR
 }
 
-// Only BUY if status is SELL or HOLD and only SELL if status is BUY
-let currentBuySellStatus: IndicationType = IndicationType.HODL
-
 export const analyzeCoppock = (
 	coppockValues: number[],
 	globalConfig: GlobalConfig
@@ -90,10 +87,7 @@ export const analyzeCoppock = (
 	}
 
 	if (isIndicationValid) {
-		if (isValueIndicatingBuy && currentBuySellStatus !== IndicationType.BUY) {
-			currentBuySellStatus = IndicationType.BUY
-			return IndicationType.BUY
-		}
+		return IndicationType.BUY
 	}
 	return IndicationType.HODL
 }

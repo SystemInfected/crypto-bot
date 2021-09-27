@@ -24,6 +24,8 @@ export interface GlobalConfig {
 	WMA: number
 	/** Finetuning of when to buy */
 	buyBuffer: number
+	/** Multiplier of 24h price change to avoid buying at false positive (too close to daily high) */
+	falsePositiveBuffer: number
 	/** Finetuning of when to sell */
 	sellBuffer: number
 	/** Multiplier of ATR to set sell point */

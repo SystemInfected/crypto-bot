@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import {
+	CoinFullInfo,
 	CoinGeckoClient,
 	PingResponse,
 	SimplePriceResponse,
@@ -22,6 +23,19 @@ export const getPrice = async (
 		ids: crypto,
 		vs_currencies: fiat,
 		include_last_updated_at: true,
+	})
+	return price
+}
+
+export const getPriceDetails = async (
+	crypto: string
+): Promise<CoinFullInfo> => {
+	const price = await client.coinId({
+		id: crypto,
+		localization: false,
+		tickers: false,
+		community_data: false,
+		developer_data: false,
 	})
 	return price
 }

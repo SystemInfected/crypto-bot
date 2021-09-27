@@ -5,7 +5,7 @@ import { Hello } from './components/Hello'
 const App = (): JSX.Element => {
 	return (
 		<div>
-			<Hello what="Worlden" />
+			<Hello what="World" />
 		</div>
 	)
 }
