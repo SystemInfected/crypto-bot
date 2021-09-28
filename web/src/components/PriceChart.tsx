@@ -1,10 +1,10 @@
 import * as React from 'react'
 import {
-	ComposedChart,
+	LineChart,
 	Line,
-	Scatter,
 	XAxis,
 	YAxis,
+	ZAxis,
 	CartesianGrid,
 	Tooltip,
 	ResponsiveContainer,
@@ -12,24 +12,32 @@ import {
 import { color } from '../styles/variables'
 
 interface PriceChartProps {
-	data: Array<{ time: string; price: number; buySell?: string }>
+	data: Array<{ time: string; price: number }>
 }
 
 const PriceChart = ({ data }: PriceChartProps): JSX.Element => {
 	return (
 		<ResponsiveContainer width="100%" height={300}>
-			<ComposedChart
+			<LineChart
 				data={data}
 				margin={{
 					top: 5,
-					right: 0,
+					right: 10,
 					left: -20,
 					bottom: 5,
 				}}
 			>
 				<CartesianGrid strokeDasharray="0" stroke="rgba(255, 255, 255, 0.1)" />
 				<XAxis dataKey="time" />
-				<YAxis />
+				<YAxis type="number" domain={['auto', 'auto']} />
+				<ZAxis range={[200]} />
+				<Line
+					type="monotone"
+					name="Price"
+					dataKey="price"
+					stroke={`${color.light}`}
+					activeDot={{ r: 4 }}
+				/>
 				<Tooltip
 					cursor={false}
 					contentStyle={{
@@ -38,15 +46,7 @@ const PriceChart = ({ data }: PriceChartProps): JSX.Element => {
 						border: 'none',
 					}}
 				/>
-				<Line
-					type="monotone"
-					name="Price"
-					dataKey="price"
-					stroke={`${color.light}`}
-					activeDot={{ r: 4 }}
-				/>
-				<Scatter name="Action" dataKey="buySell" fill={color.light} />
-			</ComposedChart>
+			</LineChart>
 		</ResponsiveContainer>
 	)
 }

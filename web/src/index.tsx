@@ -1,85 +1,39 @@
 import * as React from 'react'
 import { render } from 'react-dom'
+import { useState } from 'react'
+import axios from 'axios'
 import Header from './components/Header'
 import PriceChart from './components/PriceChart'
 import CoppockChart from './components/CoppockChart'
 import ChartContainer from './components/ChartContainer'
-
-const priceChartData = [
-	{
-		time: '20:40',
-		price: 2400,
-		buySell: 'SELL',
-	},
-	{
-		time: '20:40',
-		price: 1398,
-	},
-	{
-		time: '20:40',
-		price: 9800,
-		buySell: 'BUY',
-	},
-	{
-		time: '20:40',
-		price: 3908,
-		buySell: 'SELL',
-	},
-	{
-		time: '20:40',
-		price: 4800,
-	},
-	{
-		time: '20:40',
-		price: 3800,
-	},
-	{
-		time: '20:40',
-		price: 4300,
-		buySell: 'BUY',
-	},
-]
-
-const CoppockChartData = [
-	{
-		time: '20:40',
-		coppockValue: 1,
-	},
-	{
-		time: '20:40',
-		coppockValue: 0.8,
-	},
-	{
-		time: '20:40',
-		coppockValue: 0.4,
-	},
-	{
-		time: '20:40',
-		coppockValue: 0.1,
-	},
-	{
-		time: '20:40',
-		coppockValue: -0.4,
-	},
-	{
-		time: '20:40',
-		coppockValue: -0.6,
-	},
-	{
-		time: '20:40',
-		coppockValue: -0.7,
-	},
-]
+import { logError } from './utils/Logger'
 
 const App = (): JSX.Element => {
+	const [serverData, setServerData] = useState({
+		configData: { coin: '', stableCoin: '' },
+		priceChartData: [{ time: '', price: 0 }],
+		coppockChartData: [{ time: '', coppockValue: 0 }],
+	})
+
+	axios
+		.get('http://localhost:4000/chart_data')
+		.then((dataRes) => {
+			setServerData(dataRes.data)
+		})
+		.catch((error) => {
+			logError(error)
+		})
+
+	const { configData, priceChartData, coppockChartData } = serverData
+
 	return (
 		<>
 			<Header />
-			<ChartContainer title="Ethereum / USDT">
-				<PriceChart data={priceChartData} />
+			<ChartContainer title={`${configData.coin} / ${configData.stableCoin}`}>
+				<PriceChart data={priceChartData.slice(-20)} />
 			</ChartContainer>
 			<ChartContainer title="Coppock Curve">
-				<CoppockChart data={CoppockChartData} />
+				<CoppockChart data={coppockChartData.slice(-20)} />
 			</ChartContainer>
 		</>
 	)

@@ -20,13 +20,13 @@ const PriceChart = ({ data }: PriceChartProps): JSX.Element => {
 				data={data}
 				margin={{
 					top: 5,
-					right: 0,
+					right: 10,
 					left: -20,
 					bottom: 5,
 				}}
 			>
 				<CartesianGrid strokeDasharray="0" stroke="rgba(255, 255, 255, 0.1)" />
-				<XAxis dataKey="name" />
+				<XAxis dataKey="time" />
 				<YAxis />
 
 				<Line

@@ -88,7 +88,7 @@ export const logBuySellIndication = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('SELL ') +
 					chalk.green(
-						`${buySellIndication.config.coin.short} (${buySellIndication.price} ${buySellIndication.config.stableCoin.short}) | GAIN:${buySellIndication.result} ${buySellIndication.config.stableCoin.short}`
+						`${buySellIndication.config.coin.short} (${buySellIndication.price} ${buySellIndication.config.stableCoin.short}) | GAIN (per 1 ${buySellIndication.config.stableCoin.short}):${buySellIndication.result} ${buySellIndication.config.stableCoin.short}`
 					)
 			)
 		}

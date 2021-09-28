@@ -9,10 +9,11 @@ CoinGecko is used to get current price data
 _ATT: I am no trading expert, use this at your own risk_
 
 ### TODO
+
 - [x] Finish algorithm for BUY
-- [X] Finish algorithm for SELL
+- [x] Finish algorithm for SELL
 - [ ] Test and fine tune algorithms until good BUY/SELL results
-- [ ] Connect to Graph frontend
+- [x] Connect to Graph frontend
 - [ ] Connect to exchange
 - [ ] Log BUY/SELL to file (for tax reports)
 - [ ] Earn money

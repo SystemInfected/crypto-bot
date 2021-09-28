@@ -1,11 +1,11 @@
 {
 	"coin": {
 		"short": "ETH",
-		"coingeckoId": "ethereum"
+		"coingeckoId": "Ethereum"
 	},
 	"stableCoin": {
 		"short": "USDT",
-		"coingeckoId": "tether"
+		"coingeckoId": "Tether"
 	},
 	"tickInterval": 3,
 	"minInitialValues": 15,

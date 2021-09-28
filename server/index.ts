@@ -32,7 +32,9 @@ const globalConfig: GlobalConfig = config
 
 const startupData: StartupData = { time: '' }
 const coinValueFromStableCoin: number[] = []
+const priceChartData: Array<{ time: string; price: number }> = []
 const coppockValues: number[] = []
+const coppockChartData: Array<{ time: string; coppockValue: number }> = []
 const atrValues: { atr: number; price: number }[] = []
 let readyToBuy = true
 
@@ -44,20 +46,36 @@ const buySellIndication: {
 	result: number
 }[] = []
 
+// Express server for frontend
+const app = express()
+const port = 4000
+
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
+app.use(cors())
+
+app.listen(port)
+
 const tick = async (): Promise<void> => {
 	const priceData = await getPrice(
-		`${globalConfig.coin.coingeckoId},${globalConfig.stableCoin.coingeckoId}`,
+		`${globalConfig.coin.coingeckoId.toLowerCase()},${globalConfig.stableCoin.coingeckoId.toLowerCase()}`,
 		'usd'
 	)
 	try {
 		const marketPrice =
-			priceData[globalConfig.coin.coingeckoId].usd /
-			priceData[globalConfig.stableCoin.coingeckoId].usd
+			priceData[globalConfig.coin.coingeckoId.toLowerCase()].usd /
+			priceData[globalConfig.stableCoin.coingeckoId.toLowerCase()].usd
 		const dateObject = new Date(
-			priceData[globalConfig.coin.coingeckoId].last_updated_at * 1000
+			priceData[globalConfig.coin.coingeckoId.toLowerCase()].last_updated_at *
+				1000
 		)
 		const dateFormatted = dateObject.toLocaleString()
+		const timeFormatted = dateObject.toLocaleTimeString([], {
+			hour: '2-digit',
+			minute: '2-digit',
+		})
 		coinValueFromStableCoin.unshift(marketPrice)
+		priceChartData.push({ time: timeFormatted, price: marketPrice })
 		displayCurrentValueMessage(
 			startupData.time,
 			marketPrice,
@@ -68,6 +86,10 @@ const tick = async (): Promise<void> => {
 		if (coinValueFromStableCoin.length >= globalConfig.minInitialValues) {
 			const dateObject = new Date()
 			const dateFormatted = dateObject.toLocaleString()
+			const timeFormatted = dateObject.toLocaleTimeString([], {
+				hour: '2-digit',
+				minute: '2-digit',
+			})
 
 			const coppockValue = runCoppockAlgorithm(
 				coinValueFromStableCoin,
@@ -75,12 +97,13 @@ const tick = async (): Promise<void> => {
 			)
 			if (typeof coppockValue === 'number') {
 				coppockValues.unshift(coppockValue)
+				coppockChartData.push({ time: timeFormatted, coppockValue })
 			}
 
 			if (readyToBuy) {
 				try {
 					const priceDetails = await getPriceDetails(
-						globalConfig.coin.coingeckoId
+						globalConfig.coin.coingeckoId.toLowerCase()
 					)
 					const { market_data: marketData } = priceDetails
 					if (marketData?.low_24h && marketData?.high_24h) {
@@ -177,16 +200,13 @@ ping()
 	})
 	.catch((err) => logError(err))
 
-// Express server for frontend
-const app = express()
-const port = 4000
-
-app.use(express.urlencoded({ extended: true }))
-app.use(express.json())
-app.use(cors())
-
-app.listen(port)
-
-app.get('/express_backend', (req, res) => {
-	res.send({ express: 'YOUR EXPRESS BACKEND IS CONNECTED TO REACT' })
+app.get('/chart_data', async (req, res) => {
+	res.send({
+		configData: {
+			coin: globalConfig.coin.coingeckoId,
+			stableCoin: globalConfig.stableCoin.coingeckoId,
+		},
+		priceChartData,
+		coppockChartData,
+	})
 })
