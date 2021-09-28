@@ -5,6 +5,7 @@ import {
 	XAxis,
 	YAxis,
 	CartesianGrid,
+	ReferenceLine,
 	ResponsiveContainer,
 } from 'recharts'
 import { color } from '../styles/variables'
@@ -26,8 +27,9 @@ const PriceChart = ({ data }: PriceChartProps): JSX.Element => {
 				}}
 			>
 				<CartesianGrid strokeDasharray="0" stroke="rgba(255, 255, 255, 0.1)" />
+				<ReferenceLine y={0} stroke={color.light} strokeDasharray="3 3" />
 				<XAxis dataKey="time" />
-				<YAxis />
+				<YAxis type="number" domain={['auto', 'auto']} />
 
 				<Line
 					type="monotone"

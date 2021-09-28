@@ -6,7 +6,7 @@ export const logHeader = (time: string): void => {
 	console.log(
 		chalk.whiteBright.bold('Crypto Bot') +
 			chalk.whiteBright(
-				` | Started: ${time.toString()}\nGraph frontend: http://localhost:3030`
+				` | Started: ${time.toString()}\nGraph frontend: http://localhost:4000/`
 			)
 	)
 }
@@ -88,7 +88,7 @@ export const logBuySellIndication = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('SELL ') +
 					chalk.green(
-						`${buySellIndication.config.coin.short} (${buySellIndication.price} ${buySellIndication.config.stableCoin.short}) | GAIN (per 1 ${buySellIndication.config.stableCoin.short}):${buySellIndication.result} ${buySellIndication.config.stableCoin.short}`
+						`${buySellIndication.config.coin.short} (${buySellIndication.price} ${buySellIndication.config.stableCoin.short}) | GAIN (per 1 ${buySellIndication.config.coin.short}):${buySellIndication.result} ${buySellIndication.config.stableCoin.short}`
 					)
 			)
 		}

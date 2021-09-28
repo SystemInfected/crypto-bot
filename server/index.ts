@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import path from 'path'
 import { getPrice, getPriceDetails, ping } from './components/CryptoData'
 import { displayCurrentValueMessage } from './utils/Messenger'
 import {
@@ -34,7 +35,16 @@ const startupData: StartupData = { time: '' }
 const coinValueFromStableCoin: number[] = []
 const priceChartData: Array<{ time: string; price: number }> = []
 const coppockValues: number[] = []
-const coppockChartData: Array<{ time: string; coppockValue: number }> = []
+const coppockChartData: Array<{
+	time: string
+	coppockValue: number
+}> = new Array(globalConfig.minAlgorithmValues - 1).fill({
+	time: `${new Date().toLocaleTimeString([], {
+		hour: '2-digit',
+		minute: '2-digit',
+	})}`,
+	coppockValue: 0,
+})
 const atrValues: { atr: number; price: number }[] = []
 let readyToBuy = true
 
@@ -53,6 +63,10 @@ const port = 4000
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 app.use(cors())
+app.use('/', express.static(path.join(__dirname, '../web/dist')))
+app.get('/', (req, res) => {
+	res.sendFile(path.join(__dirname, '../web/dist/index.html'))
+})
 
 app.listen(port)
 
@@ -205,6 +219,7 @@ app.get('/chart_data', async (req, res) => {
 		configData: {
 			coin: globalConfig.coin.coingeckoId,
 			stableCoin: globalConfig.stableCoin.coingeckoId,
+			minInitialValues: globalConfig.minInitialValues,
 		},
 		priceChartData,
 		coppockChartData,
