@@ -31,6 +31,10 @@
 			"type": "number",
 			"description": "Interval (minutes) inbetween each request for current values. Coingecko caching is about 2-3 minutes so anything under that is unnecessary"
 		},
+		"concurrentOrders": {
+			"type": "integer",
+			"description": "Max amount of orders at the same time"
+		},
 		"minInitialValues": {
 			"type": "integer",
 			"description": "For ROC 14 at least 15 intervals are needed"
@@ -72,6 +76,7 @@
 		"coin",
 		"stableCoin",
 		"tickInterval",
+		"concurrentOrders",
 		"minInitialValues",
 		"minAlgorithmValues",
 		"longROC",

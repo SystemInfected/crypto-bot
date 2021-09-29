@@ -14,6 +14,7 @@ _ATT: I am no trading expert, use this at your own risk_
 - [x] Finish algorithm for SELL
 - [ ] Test and fine tune algorithms until good BUY/SELL results
 - [x] Connect to Graph frontend
+- [ ] Allow multiple concurrent orders
 - [ ] Connect to exchange
 - [ ] Log BUY/SELL to file (for tax reports)
 - [ ] Earn money

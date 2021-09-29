@@ -1,6 +1,10 @@
 /* eslint-disable no-console */
 import chalk from 'chalk'
-import { GlobalConfig, IndicationType } from '../components/Interfaces'
+import {
+	CurrentBuy,
+	GlobalConfig,
+	IndicationType,
+} from '../components/Interfaces'
 
 export const logHeader = (time: string): void => {
 	console.log(
@@ -55,14 +59,17 @@ export const logCurrentCoppockValue = (value: number): void => {
 	)
 }
 
-export const logCurrentATRValue = (
-	config: GlobalConfig,
-	value: number
-): void => {
-	console.log(
-		chalk.green('ATR to trigger SELL: ') +
-			chalk.green.bold(`${value.toString()}(x${config.ATRmultiplier})`)
-	)
+export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
+	console.log(chalk.green('\nCurrent active orders:'))
+	for (const key in currentBuys) {
+		const currentBuy = currentBuys[key]
+		console.log(
+			chalk.green.bold(`${key}: `) +
+				chalk.green(
+					`${currentBuy.config.coin.short} (${currentBuy.price} ${currentBuy.config.stableCoin.short}) | ATR:${currentBuy.atr} (x${currentBuy.config.ATRmultiplier}) | ${currentBuy.time}`
+				)
+		)
+	}
 }
 
 export const logBuySellIndication = (
@@ -74,6 +81,7 @@ export const logBuySellIndication = (
 		result: number
 	}>
 ): void => {
+	console.log(chalk.green('\nOrder history:'))
 	buySellIndicationArr.forEach((buySellIndication) => {
 		if (buySellIndication.status === IndicationType.BUY) {
 			console.log(

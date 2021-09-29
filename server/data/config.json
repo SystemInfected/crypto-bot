@@ -7,7 +7,8 @@
 		"short": "USDT",
 		"coingeckoId": "Tether"
 	},
-	"tickInterval": 3,
+	"tickInterval": 0.05,
+	"concurrentOrders": 3,
 	"minInitialValues": 15,
 	"minAlgorithmValues": 25,
 	"longROC": 14,

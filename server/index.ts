@@ -6,12 +6,16 @@ import { displayCurrentValueMessage } from './utils/Messenger'
 import {
 	clearLog,
 	logBuySellIndication,
-	logCurrentATRValue,
+	logCurrentBuys,
 	logCurrentCoppockValue,
 	logError,
 	logInfo,
 } from './utils/Logger'
-import { GlobalConfig, IndicationType } from './components/Interfaces'
+import {
+	CurrentBuy,
+	GlobalConfig,
+	IndicationType,
+} from './components/Interfaces'
 import {
 	analyzeATR,
 	analyzeCoppock,
@@ -27,6 +31,7 @@ const ajv = new Ajv()
 interface StartupData {
 	time: string
 }
+
 const validate = ajv.compile<GlobalConfig>(configSchema)
 
 const globalConfig: GlobalConfig = config
@@ -56,6 +61,8 @@ const buySellIndication: {
 	result: number
 }[] = []
 
+const currentBuys: CurrentBuy = {}
+
 // Express server for frontend
 const app = express()
 const port = 4000
@@ -76,9 +83,31 @@ const tick = async (): Promise<void> => {
 		'usd'
 	)
 	try {
+		const testMultiplier = [
+			0.982,
+			0.985,
+			0.987,
+			0.99,
+			0.99,
+			0.99,
+			1,
+			1,
+			1,
+			1.008,
+			1.01,
+			1.01,
+			1.011,
+			1.015,
+			1.018,
+			1.018,
+			1.019,
+		]
+
+		const random = Math.floor(Math.random() * testMultiplier.length)
 		const marketPrice =
-			priceData[globalConfig.coin.coingeckoId.toLowerCase()].usd /
-			priceData[globalConfig.stableCoin.coingeckoId.toLowerCase()].usd
+			(priceData[globalConfig.coin.coingeckoId.toLowerCase()].usd /
+				priceData[globalConfig.stableCoin.coingeckoId.toLowerCase()].usd) *
+			testMultiplier[random]
 		const dateObject = new Date(
 			priceData[globalConfig.coin.coingeckoId.toLowerCase()].last_updated_at *
 				1000
@@ -133,6 +162,7 @@ const tick = async (): Promise<void> => {
 							)
 							switch (analyzeBuyResult) {
 								case IndicationType.BUY: {
+									const buyId = `${globalConfig.coin.short}${Date.now()}`
 									const atrValue = runATRAlgorithm(
 										coinValueFromStableCoin,
 										globalConfig
@@ -145,7 +175,18 @@ const tick = async (): Promise<void> => {
 										result: atrValue,
 									})
 									atrValues.unshift({ atr: atrValue, price: marketPrice })
-									readyToBuy = false
+									currentBuys[buyId] = {
+										time: dateFormatted,
+										price: marketPrice,
+										atr: atrValue,
+										config: globalConfig,
+									}
+									if (
+										Object.keys(currentBuys).length ===
+										globalConfig.concurrentOrders
+									) {
+										readyToBuy = false
+									}
 									break
 								}
 								case IndicationType.HODL:
@@ -159,7 +200,6 @@ const tick = async (): Promise<void> => {
 					logError(error)
 				}
 			} else if (!readyToBuy) {
-				logCurrentATRValue(globalConfig, atrValues[0].atr)
 				const analyzeSellResult = analyzeATR(
 					atrValues[0],
 					marketPrice,
@@ -185,6 +225,9 @@ const tick = async (): Promise<void> => {
 			}
 
 			logCurrentCoppockValue(coppockValues[0] || 0)
+		}
+		if (coinValueFromStableCoin.length >= globalConfig.minAlgorithmValues) {
+			logCurrentBuys(currentBuys)
 			logBuySellIndication(buySellIndication)
 		}
 	} catch (error) {

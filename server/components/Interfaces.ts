@@ -12,6 +12,8 @@ export interface GlobalConfig {
 	/** Interval (minutes) inbetween each request for current values
 	 * Coingecko caching is about 2-3 minutes so anything under that is unnecessary */
 	tickInterval: number
+	/** Max amount of orders at the same time */
+	concurrentOrders: number
 	/** For ROC 14 at least 15 intervals are needed */
 	minInitialValues: number
 	/** For WMA 10 of ROC 14 at least 25 intervals are needed */
@@ -36,4 +38,13 @@ export enum IndicationType {
 	BUY,
 	SELL,
 	HODL,
+}
+
+export interface CurrentBuy {
+	[key: string]: {
+		time: string
+		price: number
+		atr: number
+		config: GlobalConfig
+	}
 }
