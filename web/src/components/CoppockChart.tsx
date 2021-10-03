@@ -28,9 +28,8 @@ const PriceChart = ({ data }: PriceChartProps): JSX.Element => {
 			>
 				<CartesianGrid strokeDasharray="0" stroke="rgba(255, 255, 255, 0.1)" />
 				<ReferenceLine y={0} stroke={color.light} strokeDasharray="3 3" />
-				<XAxis dataKey="time" />
+				<XAxis dataKey="time" hide={true} />
 				<YAxis type="number" domain={['auto', 'auto']} />
-
 				<Line
 					type="monotone"
 					dataKey="coppockValue"

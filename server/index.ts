@@ -48,10 +48,7 @@ const coppockChartData: Array<{
 	time: string
 	coppockValue: number
 }> = new Array(config.minAlgorithmValues - 1).fill({
-	time: `${new Date().toLocaleTimeString([], {
-		hour: '2-digit',
-		minute: '2-digit',
-	})}`,
+	time: 'xx:xx',
 	coppockValue: 0,
 })
 const atrValues: { atr: number; price: number }[] = []
