@@ -101,6 +101,7 @@ export const analyzeATR = (
 		} else {
 			// Add to delay
 			ATRDelayCheck.push(buyId)
+			return IndicationType.HODL
 		}
 	}
 	// Zero delay
