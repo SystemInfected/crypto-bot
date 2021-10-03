@@ -11,7 +11,7 @@ import { displayCurrentValueHeader } from './utils/Messenger'
 import { config } from './utils/ValidatedConfig'
 import {
 	clearLog,
-	logBuySellIndication,
+	logBuySellHistory,
 	logCurrentBuys,
 	logCurrentCoppockValue,
 	logError,
@@ -30,16 +30,6 @@ interface StartupDataProps {
 	time: string
 }
 
-interface EvaluateBuyProps {
-	marketPrice: number
-	dateFormatted: string
-}
-
-interface EvaluateSellProps {
-	marketPrice: number
-	dateFormatted: string
-}
-
 const startupData: StartupDataProps = { time: '' }
 const coinValueFromStableCoin: number[] = []
 const priceChartData: Array<{ time: string; price: number }> = []
@@ -52,7 +42,6 @@ const coppockChartData: Array<{
 	coppockValue: 0,
 })
 const atrValues: { atr: number; price: number }[] = []
-let readyToBuy = true
 
 const buySellIndication: {
 	time: string
@@ -76,77 +65,6 @@ app.get('/', (req, res) => {
 })
 
 app.listen(port)
-
-const evaluateBuy = async ({
-	marketPrice,
-	dateFormatted,
-}: EvaluateBuyProps): Promise<void> => {
-	try {
-		const priceDetails = await getPriceDetails()
-		const { market_data: marketData } = priceDetails
-		if (marketData?.low_24h && marketData?.high_24h) {
-			const maxBuyPrice =
-				marketData.low_24h.usd +
-				(marketData.high_24h.usd - marketData.low_24h.usd) *
-					config.falsePositiveBuffer
-
-			if (marketPrice < maxBuyPrice) {
-				const analyzeBuyResult = analyzeCoppock(coppockValues)
-				switch (analyzeBuyResult) {
-					case IndicationType.BUY: {
-						const buyId = `${config.coin.short}${Date.now()}`
-						const atrValue = runATRAlgorithm(coinValueFromStableCoin)
-						buySellIndication.unshift({
-							time: dateFormatted,
-							status: IndicationType.BUY,
-							price: marketPrice,
-							result: atrValue,
-						})
-						atrValues.unshift({ atr: atrValue, price: marketPrice })
-						currentBuys[buyId] = {
-							time: dateFormatted,
-							price: marketPrice,
-							atr: atrValue,
-						}
-						if (Object.keys(currentBuys).length === config.concurrentOrders) {
-							readyToBuy = false
-						}
-						break
-					}
-					case IndicationType.HODL:
-						break
-					default:
-						break
-				}
-			}
-		}
-	} catch (error) {
-		logError(error)
-	}
-}
-
-const evaluateSell = ({
-	marketPrice,
-	dateFormatted,
-}: EvaluateSellProps): void => {
-	const analyzeSellResult = analyzeATR(atrValues[0], marketPrice)
-	switch (analyzeSellResult) {
-		case IndicationType.SELL: {
-			buySellIndication.push({
-				time: dateFormatted,
-				status: IndicationType.SELL,
-				price: marketPrice,
-				result: marketPrice - atrValues[0].price,
-			})
-			readyToBuy = true
-			break
-		}
-		case IndicationType.HODL:
-			break
-		default:
-			break
-	}
-}
 
 const initialLoad = async (): Promise<void> => {
 	const coinHistory = await getPriceHistory()
@@ -207,16 +125,74 @@ const tick = async (): Promise<void> => {
 			coppockChartData.push({ time: timeFormatted, coppockValue })
 		}
 
-		if (readyToBuy) {
-			await evaluateBuy({ marketPrice, dateFormatted })
-		} else if (!readyToBuy) {
-			evaluateSell({ marketPrice, dateFormatted })
+		if (Object.keys(currentBuys).length < config.concurrentOrders) {
+			try {
+				const priceDetails = await getPriceDetails()
+				const { market_data: marketData } = priceDetails
+				if (marketData?.low_24h && marketData?.high_24h) {
+					const maxBuyPrice =
+						marketData.low_24h.usd +
+						(marketData.high_24h.usd - marketData.low_24h.usd) *
+							config.falsePositiveBuffer
+
+					if (marketPrice < maxBuyPrice) {
+						const analyzeBuyResult = analyzeCoppock(coppockValues)
+						switch (analyzeBuyResult) {
+							case IndicationType.BUY: {
+								const buyId = `${config.coin.short}${Date.now()}`
+								const atrValue = runATRAlgorithm(coinValueFromStableCoin)
+								buySellIndication.unshift({
+									time: dateFormatted,
+									status: IndicationType.BUY,
+									price: marketPrice,
+									result: atrValue,
+								})
+								atrValues.unshift({ atr: atrValue, price: marketPrice })
+								currentBuys[buyId] = {
+									time: dateFormatted,
+									price: marketPrice,
+									atr: atrValue,
+								}
+								break
+							}
+							case IndicationType.HODL:
+								break
+							default:
+								break
+						}
+					}
+				}
+			} catch (error) {
+				logError(error)
+			}
+		}
+		if (Object.keys(currentBuys).length > 0) {
+			for (const key in currentBuys) {
+				const currentBuy = currentBuys[key]
+				const analyzeSellResult = analyzeATR(key, currentBuy, marketPrice)
+				switch (analyzeSellResult) {
+					case IndicationType.SELL: {
+						buySellIndication.unshift({
+							time: dateFormatted,
+							status: IndicationType.SELL,
+							price: marketPrice,
+							result: marketPrice - currentBuy.price,
+						})
+						delete currentBuys[key]
+						break
+					}
+					case IndicationType.HODL:
+						break
+					default:
+						break
+				}
+			}
 		}
 
 		logCurrentCoppockValue(coppockValues[0] || 0)
 
 		logCurrentBuys(currentBuys)
-		logBuySellIndication(buySellIndication)
+		logBuySellHistory(buySellIndication)
 	} catch (error) {
 		logError(error)
 	}

@@ -2,7 +2,7 @@ import { config } from '../utils/ValidatedConfig'
 import { IndicationType } from './Interfaces'
 
 const ROCsum: number[] = []
-let ATRDelayCheck = 0
+let ATRDelayCheck: string[] = []
 
 const getROC = (coinValueFromStableCoin: number[], ROCrate: number): number => {
 	const currentValue = coinValueFromStableCoin[0]
@@ -87,21 +87,23 @@ export const analyzeCoppock = (coppockValues: number[]): IndicationType => {
 }
 
 export const analyzeATR = (
-	atrValues: { atr: number; price: number },
+	buyId: string,
+	currentBuy: { time: string; price: number; atr: number },
 	marketPrice: number
 ): IndicationType => {
+	const atrDelay = ATRDelayCheck.filter((atr) => atr === buyId)
 	// Analize if previous ATR is reach, if so SELL
-
-	const { atr, price } = atrValues
-
-	if (marketPrice >= price + atr * config.ATRmultiplier) {
+	if (marketPrice >= currentBuy.price + currentBuy.atr * config.ATRmultiplier) {
 		return IndicationType.SELL
-	} else if (marketPrice >= price + atr) {
-		if (ATRDelayCheck === config.sellBuffer) {
+	} else if (marketPrice >= currentBuy.price + currentBuy.atr) {
+		if (atrDelay.length === config.sellBuffer) {
 			return IndicationType.SELL
 		} else {
-			ATRDelayCheck++
+			// Add to delay
+			ATRDelayCheck.push(buyId)
 		}
 	}
+	// Zero delay
+	ATRDelayCheck = ATRDelayCheck.filter((atr) => atr !== buyId)
 	return IndicationType.HODL
 }

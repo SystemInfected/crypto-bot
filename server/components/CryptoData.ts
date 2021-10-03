@@ -38,8 +38,7 @@ export const getPriceDetails = async (): Promise<CoinFullInfo> => {
 }
 
 export const getPriceHistory = async (): Promise<CoinMarketChartResponse> => {
-	const tickInterval =
-		config.tickInterval * 60 > 300 ? config.tickInterval : 300
+	const tickInterval = 300
 	const lookBack =
 		Math.floor(Date.now() / 1000) - config.minAlgorithmValues * tickInterval
 	const history = await client.coinIdMarketChartRange({

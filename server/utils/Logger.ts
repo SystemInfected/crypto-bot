@@ -68,7 +68,7 @@ export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
 	}
 }
 
-export const logBuySellIndication = (
+export const logBuySellHistory = (
 	buySellIndicationArr: Array<{
 		time: string
 		status: IndicationType
