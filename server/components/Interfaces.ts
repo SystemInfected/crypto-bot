@@ -2,12 +2,12 @@ export interface GlobalConfig {
 	/** Cryptocurrency to trade (i.e. Etherium) */
 	coin: {
 		short: string
-		coingeckoId: string
+		fullName: string
 	}
 	/** Stable coin to compare against (Tether recommended) */
 	stableCoin: {
 		short: string
-		coingeckoId: string
+		fullName: string
 	}
 	/** Interval (minutes) inbetween each request for current values
 	 * Coingecko caching is about 2-3 minutes so anything under that is unnecessary */

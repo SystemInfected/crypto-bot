@@ -12,11 +12,11 @@ const globalConfig: GlobalConfig = configData
 const standardConfig: GlobalConfig = {
 	coin: {
 		short: 'ETH',
-		coingeckoId: 'Ethereum',
+		fullName: 'Ethereum',
 	},
 	stableCoin: {
 		short: 'USDT',
-		coingeckoId: 'Tether',
+		fullName: 'Tether',
 	},
 	tickInterval: 3,
 	concurrentOrders: 3,

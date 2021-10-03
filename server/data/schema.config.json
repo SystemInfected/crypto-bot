@@ -8,11 +8,11 @@
 				"short": {
 					"type": "string"
 				},
-				"coingeckoId": {
+				"fullName": {
 					"type": "string"
 				}
 			},
-			"required": ["short", "coingeckoId"]
+			"required": ["short", "fullName"]
 		},
 		"stableCoin": {
 			"type": "object",
@@ -21,11 +21,11 @@
 				"short": {
 					"type": "string"
 				},
-				"coingeckoId": {
+				"fullName": {
 					"type": "string"
 				}
 			},
-			"required": ["short", "coingeckoId"]
+			"required": ["short", "fullName"]
 		},
 		"tickInterval": {
 			"type": "number",
