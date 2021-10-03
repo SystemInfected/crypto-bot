@@ -164,7 +164,7 @@ const initialLoad = async (): Promise<void> => {
 		coinValueFromStableCoin.unshift(marketPrice)
 		priceChartData.push({ time: timeFormatted, price: marketPrice })
 
-		if (index >= config.minInitialValues - 1) {
+		if (index >= config.minInitialValues) {
 			const coppockValue = runCoppockAlgorithm(coinValueFromStableCoin)
 			if (typeof coppockValue === 'number') {
 				coppockValues.unshift(coppockValue)
