@@ -45,6 +45,5 @@ export interface CurrentBuy {
 		time: string
 		price: number
 		atr: number
-		config: GlobalConfig
 	}
 }

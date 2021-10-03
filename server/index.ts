@@ -3,6 +3,7 @@ import cors from 'cors'
 import path from 'path'
 import { getPrice, getPriceDetails, ping } from './components/CryptoData'
 import { displayCurrentValueMessage } from './utils/Messenger'
+import { config } from './utils/ValidatedConfig'
 import {
 	clearLog,
 	logBuySellIndication,
@@ -11,30 +12,18 @@ import {
 	logError,
 	logInfo,
 } from './utils/Logger'
-import {
-	CurrentBuy,
-	GlobalConfig,
-	IndicationType,
-} from './components/Interfaces'
+import { CurrentBuy, IndicationType } from './components/Interfaces'
 import {
 	analyzeATR,
 	analyzeCoppock,
 	runATRAlgorithm,
 	runCoppockAlgorithm,
 } from './components/AlgorithmCalc'
-import config from './data/config.json'
-import configSchema from './data/schema.config.json'
 require('dotenv').config()
-import Ajv from 'ajv'
-const ajv = new Ajv()
 
 interface StartupData {
 	time: string
 }
-
-const validate = ajv.compile<GlobalConfig>(configSchema)
-
-const globalConfig: GlobalConfig = config
 
 const startupData: StartupData = { time: '' }
 const coinValueFromStableCoin: number[] = []
@@ -43,7 +32,7 @@ const coppockValues: number[] = []
 const coppockChartData: Array<{
 	time: string
 	coppockValue: number
-}> = new Array(globalConfig.minAlgorithmValues - 1).fill({
+}> = new Array(config.minAlgorithmValues - 1).fill({
 	time: `${new Date().toLocaleTimeString([], {
 		hour: '2-digit',
 		minute: '2-digit',
@@ -55,7 +44,6 @@ let readyToBuy = true
 
 const buySellIndication: {
 	time: string
-	config: GlobalConfig
 	status: IndicationType
 	price: number
 	result: number
@@ -79,38 +67,15 @@ app.listen(port)
 
 const tick = async (): Promise<void> => {
 	const priceData = await getPrice(
-		`${globalConfig.coin.coingeckoId.toLowerCase()},${globalConfig.stableCoin.coingeckoId.toLowerCase()}`,
+		`${config.coin.coingeckoId.toLowerCase()},${config.stableCoin.coingeckoId.toLowerCase()}`,
 		'usd'
 	)
 	try {
-		const testMultiplier = [
-			0.982,
-			0.985,
-			0.987,
-			0.99,
-			0.99,
-			0.99,
-			1,
-			1,
-			1,
-			1.008,
-			1.01,
-			1.01,
-			1.011,
-			1.015,
-			1.018,
-			1.018,
-			1.019,
-		]
-
-		const random = Math.floor(Math.random() * testMultiplier.length)
 		const marketPrice =
-			(priceData[globalConfig.coin.coingeckoId.toLowerCase()].usd /
-				priceData[globalConfig.stableCoin.coingeckoId.toLowerCase()].usd) *
-			testMultiplier[random]
+			priceData[config.coin.coingeckoId.toLowerCase()].usd /
+			priceData[config.stableCoin.coingeckoId.toLowerCase()].usd
 		const dateObject = new Date(
-			priceData[globalConfig.coin.coingeckoId.toLowerCase()].last_updated_at *
-				1000
+			priceData[config.coin.coingeckoId.toLowerCase()].last_updated_at * 1000
 		)
 		const dateFormatted = dateObject.toLocaleString()
 		const timeFormatted = dateObject.toLocaleTimeString([], {
@@ -123,10 +88,9 @@ const tick = async (): Promise<void> => {
 			startupData.time,
 			marketPrice,
 			dateFormatted,
-			coinValueFromStableCoin,
-			globalConfig
+			coinValueFromStableCoin
 		)
-		if (coinValueFromStableCoin.length >= globalConfig.minInitialValues) {
+		if (coinValueFromStableCoin.length >= config.minInitialValues) {
 			const dateObject = new Date()
 			const dateFormatted = dateObject.toLocaleString()
 			const timeFormatted = dateObject.toLocaleTimeString([], {
@@ -134,10 +98,7 @@ const tick = async (): Promise<void> => {
 				minute: '2-digit',
 			})
 
-			const coppockValue = runCoppockAlgorithm(
-				coinValueFromStableCoin,
-				globalConfig
-			)
+			const coppockValue = runCoppockAlgorithm(coinValueFromStableCoin)
 			if (typeof coppockValue === 'number') {
 				coppockValues.unshift(coppockValue)
 				coppockChartData.push({ time: timeFormatted, coppockValue })
@@ -146,30 +107,23 @@ const tick = async (): Promise<void> => {
 			if (readyToBuy) {
 				try {
 					const priceDetails = await getPriceDetails(
-						globalConfig.coin.coingeckoId.toLowerCase()
+						config.coin.coingeckoId.toLowerCase()
 					)
 					const { market_data: marketData } = priceDetails
 					if (marketData?.low_24h && marketData?.high_24h) {
 						const maxBuyPrice =
 							marketData.low_24h.usd +
 							(marketData.high_24h.usd - marketData.low_24h.usd) *
-								globalConfig.falsePositiveBuffer
+								config.falsePositiveBuffer
 
 						if (marketPrice < maxBuyPrice) {
-							const analyzeBuyResult = analyzeCoppock(
-								coppockValues,
-								globalConfig
-							)
+							const analyzeBuyResult = analyzeCoppock(coppockValues)
 							switch (analyzeBuyResult) {
 								case IndicationType.BUY: {
-									const buyId = `${globalConfig.coin.short}${Date.now()}`
-									const atrValue = runATRAlgorithm(
-										coinValueFromStableCoin,
-										globalConfig
-									)
-									buySellIndication.push({
+									const buyId = `${config.coin.short}${Date.now()}`
+									const atrValue = runATRAlgorithm(coinValueFromStableCoin)
+									buySellIndication.unshift({
 										time: dateFormatted,
-										config: globalConfig,
 										status: IndicationType.BUY,
 										price: marketPrice,
 										result: atrValue,
@@ -179,11 +133,9 @@ const tick = async (): Promise<void> => {
 										time: dateFormatted,
 										price: marketPrice,
 										atr: atrValue,
-										config: globalConfig,
 									}
 									if (
-										Object.keys(currentBuys).length ===
-										globalConfig.concurrentOrders
+										Object.keys(currentBuys).length === config.concurrentOrders
 									) {
 										readyToBuy = false
 									}
@@ -200,16 +152,11 @@ const tick = async (): Promise<void> => {
 					logError(error)
 				}
 			} else if (!readyToBuy) {
-				const analyzeSellResult = analyzeATR(
-					atrValues[0],
-					marketPrice,
-					globalConfig
-				)
+				const analyzeSellResult = analyzeATR(atrValues[0], marketPrice)
 				switch (analyzeSellResult) {
 					case IndicationType.SELL: {
 						buySellIndication.push({
 							time: dateFormatted,
-							config: globalConfig,
 							status: IndicationType.SELL,
 							price: marketPrice,
 							result: marketPrice - atrValues[0].price,
@@ -226,7 +173,7 @@ const tick = async (): Promise<void> => {
 
 			logCurrentCoppockValue(coppockValues[0] || 0)
 		}
-		if (coinValueFromStableCoin.length >= globalConfig.minAlgorithmValues) {
+		if (coinValueFromStableCoin.length >= config.minAlgorithmValues) {
 			logCurrentBuys(currentBuys)
 			logBuySellIndication(buySellIndication)
 		}
@@ -240,7 +187,7 @@ const run = (): void => {
 	const dateFormatted = dateObject.toLocaleString()
 	startupData.time = dateFormatted
 	tick()
-	setInterval(tick, globalConfig.tickInterval * 1000 * 60)
+	setInterval(tick, config.tickInterval * 1000 * 60)
 }
 
 clearLog()
@@ -248,21 +195,16 @@ logInfo('Connecting to crypto server...')
 ping()
 	.then((data) => {
 		logInfo(data.gecko_says)
-		if (validate(globalConfig)) {
-			logInfo('Config is validated')
-			run()
-		} else {
-			logError(validate.errors)
-		}
+		run()
 	})
 	.catch((err) => logError(err))
 
 app.get('/chart_data', async (req, res) => {
 	res.send({
 		configData: {
-			coin: globalConfig.coin.coingeckoId,
-			stableCoin: globalConfig.stableCoin.coingeckoId,
-			minInitialValues: globalConfig.minInitialValues,
+			coin: config.coin.coingeckoId,
+			stableCoin: config.stableCoin.coingeckoId,
+			minInitialValues: config.minInitialValues,
 		},
 		priceChartData,
 		coppockChartData,

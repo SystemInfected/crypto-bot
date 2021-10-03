@@ -33,7 +33,7 @@ const App = (): JSX.Element => {
 		getChartData()
 		setInterval(() => {
 			getChartData()
-		}, 20000)
+		}, 2000)
 	}, [])
 
 	const { configData, priceChartData, coppockChartData } = chartData

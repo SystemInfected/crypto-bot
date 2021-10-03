@@ -1,4 +1,5 @@
-import { GlobalConfig, IndicationType } from './Interfaces'
+import { config } from '../utils/ValidatedConfig'
+import { IndicationType } from './Interfaces'
 
 const ROCsum: number[] = []
 let ATRDelayCheck = 0
@@ -22,29 +23,25 @@ const getWMA = (ROCsum: number[], WMArate: number): number => {
 }
 
 export const runCoppockAlgorithm = (
-	coinValueFromStableCoin: number[],
-	globalConfig: GlobalConfig
+	coinValueFromStableCoin: number[]
 ): number | void => {
-	if (coinValueFromStableCoin.length >= globalConfig.minInitialValues) {
+	if (coinValueFromStableCoin.length >= config.minInitialValues) {
 		// Calculate sum of short ROC and long ROC
-		const short = getROC(coinValueFromStableCoin, globalConfig.shortROC)
-		const long = getROC(coinValueFromStableCoin, globalConfig.longROC)
+		const short = getROC(coinValueFromStableCoin, config.shortROC)
+		const long = getROC(coinValueFromStableCoin, config.longROC)
 		const sum = short + long
 		ROCsum.unshift(sum)
 	}
-	if (coinValueFromStableCoin.length >= globalConfig.minAlgorithmValues) {
+	if (coinValueFromStableCoin.length >= config.minAlgorithmValues) {
 		// Calculate WMA of short ROC and long ROC
-		const currentWMA = getWMA(ROCsum, globalConfig.WMA)
+		const currentWMA = getWMA(ROCsum, config.WMA)
 		return currentWMA
 	}
 }
 
-export const runATRAlgorithm = (
-	coinValueFromStableCoin: number[],
-	globalConfig: GlobalConfig
-): number => {
+export const runATRAlgorithm = (coinValueFromStableCoin: number[]): number => {
 	const TRValues: number[] = []
-	for (let i = 1; i < globalConfig.WMA + 1; i++) {
+	for (let i = 1; i < config.WMA + 1; i++) {
 		if (coinValueFromStableCoin[i] > coinValueFromStableCoin[i + 1]) {
 			const TR = coinValueFromStableCoin[i] - coinValueFromStableCoin[i + 1]
 			TRValues.push(TR)
@@ -53,20 +50,17 @@ export const runATRAlgorithm = (
 			TRValues.push(TR)
 		}
 	}
-	const ATR = getWMA(TRValues, globalConfig.WMA)
+	const ATR = getWMA(TRValues, config.WMA)
 	return ATR
 }
 
-export const analyzeCoppock = (
-	coppockValues: number[],
-	globalConfig: GlobalConfig
-): IndicationType => {
+export const analyzeCoppock = (coppockValues: number[]): IndicationType => {
 	// Analize if previous N values were above or below 0
 	// If current value is above 0 and previous N(buyBuffer) values were below = BUY
 
-	const valuesToCompare = coppockValues.slice(0, globalConfig.buyBuffer + 1)
-	if (valuesToCompare.length < globalConfig.buyBuffer + 1) {
-		const tempArr = Array.from({ length: globalConfig.buyBuffer + 1 }, () => 0)
+	const valuesToCompare = coppockValues.slice(0, config.buyBuffer + 1)
+	if (valuesToCompare.length < config.buyBuffer + 1) {
+		const tempArr = Array.from({ length: config.buyBuffer + 1 }, () => 0)
 		valuesToCompare.push(...tempArr)
 	}
 	const isValueIndicatingBuy = valuesToCompare[0] > 0
@@ -94,8 +88,7 @@ export const analyzeCoppock = (
 
 export const analyzeATR = (
 	atrValues: { atr: number; price: number },
-	marketPrice: number,
-	config: GlobalConfig
+	marketPrice: number
 ): IndicationType => {
 	// Analize if previous ATR is reach, if so SELL
 

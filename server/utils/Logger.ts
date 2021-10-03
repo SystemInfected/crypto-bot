@@ -1,10 +1,7 @@
 /* eslint-disable no-console */
 import chalk from 'chalk'
-import {
-	CurrentBuy,
-	GlobalConfig,
-	IndicationType,
-} from '../components/Interfaces'
+import { config } from './ValidatedConfig'
+import { CurrentBuy, IndicationType } from '../components/Interfaces'
 
 export const logHeader = (time: string): void => {
 	console.log(
@@ -39,11 +36,7 @@ export const logSuccess = (data: unknown): void => {
 	}
 }
 
-export const logCoinValue = (
-	config: GlobalConfig,
-	time: string,
-	value: number
-): void => {
+export const logCoinValue = (time: string, value: number): void => {
 	console.log(
 		chalk.green('Current value: ') +
 			chalk.green.bold(
@@ -66,7 +59,10 @@ export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
 		console.log(
 			chalk.green.bold(`${key}: `) +
 				chalk.green(
-					`${currentBuy.config.coin.short} (${currentBuy.price} ${currentBuy.config.stableCoin.short}) | ATR:${currentBuy.atr} (x${currentBuy.config.ATRmultiplier}) | ${currentBuy.time}`
+					`${config.coin.short} (${currentBuy.price} ${config.stableCoin.short})`
+				) +
+				chalk.white(
+					` ATR:${currentBuy.atr} (x${config.ATRmultiplier}) | ${currentBuy.time}`
 				)
 		)
 	}
@@ -75,7 +71,6 @@ export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
 export const logBuySellIndication = (
 	buySellIndicationArr: Array<{
 		time: string
-		config: GlobalConfig
 		status: IndicationType
 		price: number
 		result: number
@@ -88,7 +83,7 @@ export const logBuySellIndication = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('BUY ') +
 					chalk.green(
-						`${buySellIndication.config.coin.short} (${buySellIndication.price} ${buySellIndication.config.stableCoin.short}) | ATR:${buySellIndication.result}`
+						`${config.coin.short} (${buySellIndication.price} ${config.stableCoin.short})`
 					)
 			)
 		} else if (buySellIndication.status === IndicationType.SELL) {
@@ -96,7 +91,7 @@ export const logBuySellIndication = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('SELL ') +
 					chalk.green(
-						`${buySellIndication.config.coin.short} (${buySellIndication.price} ${buySellIndication.config.stableCoin.short}) | GAIN (per 1 ${buySellIndication.config.coin.short}):${buySellIndication.result} ${buySellIndication.config.stableCoin.short}`
+						`${config.coin.short} (${buySellIndication.price} ${config.stableCoin.short}) | GAIN (per 1 ${config.coin.short}):${buySellIndication.result} ${config.stableCoin.short}`
 					)
 			)
 		}
