@@ -9,6 +9,8 @@ export interface GlobalConfig {
 		short: string
 		fullName: string
 	}
+	/** Allocation of assets at exchange */
+	allocation: number
 	/** Interval (minutes) inbetween each request for current values
 	 * Coingecko caching is about 2-3 minutes so anything under that is unnecessary */
 	tickInterval: number

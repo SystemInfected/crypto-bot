@@ -16,7 +16,7 @@ interface PriceChartProps {
 
 const PriceChart = ({ data }: PriceChartProps): JSX.Element => {
 	return (
-		<ResponsiveContainer width="100%" height={150}>
+		<ResponsiveContainer width="100%" height={100}>
 			<LineChart
 				data={data}
 				margin={{
