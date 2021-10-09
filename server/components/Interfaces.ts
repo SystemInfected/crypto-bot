@@ -12,8 +12,6 @@ export interface GlobalConfig {
 	/** Interval (minutes) inbetween each request for current values
 	 * Coingecko caching is about 2-3 minutes so anything under that is unnecessary */
 	tickInterval: number
-	/** Allocation of assets at exchange */
-	allocation: number
 	/** Max amount of orders at the same time */
 	concurrentOrders: number
 	/** For ROC 14 at least 15 intervals are needed */
