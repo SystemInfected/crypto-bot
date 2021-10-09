@@ -34,11 +34,11 @@ const ChartSection = styled.div`
 	max-width: 1600px;
 	overflow: hidden;
 	padding: 0 max(4rem, env(safe-area-inset-left));
-	padding-bottom: 5em;
+	padding-bottom: 3em;
 	width: 100%;
 	@media screen and (max-width: 768px) {
 		padding: 0 2.5em;
-		padding-bottom: 5em;
+		padding-bottom: 3em;
 	}
 `
 
@@ -51,7 +51,7 @@ const TitleContainer = styled.div`
 `
 
 const Chart = styled.div`
-	margin-top: 2em;
+	margin-top: 1em;
 	width: 100%;
 	background-color: rgba(255, 255, 255, 0.05);
 	backdrop-filter: blur(5px);

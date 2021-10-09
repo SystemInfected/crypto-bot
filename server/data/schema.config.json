@@ -31,6 +31,10 @@
 			"type": "number",
 			"description": "Interval (minutes) inbetween each request for current values. Coingecko caching is about 2-3 minutes so anything under that is unnecessary"
 		},
+		"allocation": {
+			"type": "number",
+			"description": "Allocation of assets at exchange"
+		},
 		"concurrentOrders": {
 			"type": "integer",
 			"description": "Max amount of orders at the same time"
@@ -76,6 +80,7 @@
 		"coin",
 		"stableCoin",
 		"tickInterval",
+		"allocation",
 		"concurrentOrders",
 		"minInitialValues",
 		"minAlgorithmValues",

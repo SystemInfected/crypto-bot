@@ -7,6 +7,7 @@
 		"short": "USDT",
 		"fullName": "Tether"
 	},
+	"allocation": 0.1,
 	"tickInterval": 3,
 	"concurrentOrders": 3,
 	"minInitialValues": 15,

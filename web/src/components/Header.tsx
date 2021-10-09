@@ -25,11 +25,11 @@ const HeaderSection = styled.div`
 	max-width: 1600px;
 	overflow: hidden;
 	padding: 0 max(4rem, env(safe-area-inset-left));
-	padding-bottom: 5em;
+	padding-bottom: 4em;
 	width: 100%;
 	@media screen and (max-width: 768px) {
 		padding: 0 2.5em;
-		padding-bottom: 5em;
+		padding-bottom: 4em;
 	}
 `
 

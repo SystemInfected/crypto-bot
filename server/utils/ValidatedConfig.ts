@@ -9,26 +9,27 @@ const validate = ajv.compile<GlobalConfig>(configSchema)
 
 const globalConfig: GlobalConfig = configData
 
-const standardConfig: GlobalConfig = {
+const emptyConfig: GlobalConfig = {
 	coin: {
-		short: 'ETH',
-		fullName: 'Ethereum',
+		short: '',
+		fullName: '',
 	},
 	stableCoin: {
-		short: 'USDT',
-		fullName: 'Tether',
+		short: '',
+		fullName: '',
 	},
-	tickInterval: 3,
-	concurrentOrders: 3,
-	minInitialValues: 15,
-	minAlgorithmValues: 25,
-	longROC: 14,
-	shortROC: 11,
-	WMA: 10,
-	buyBuffer: 4,
-	falsePositiveBuffer: 0.6,
-	sellBuffer: 2,
-	ATRmultiplier: 2.5,
+	allocation: 0,
+	tickInterval: 0,
+	concurrentOrders: 0,
+	minInitialValues: 0,
+	minAlgorithmValues: 0,
+	longROC: 0,
+	shortROC: 0,
+	WMA: 0,
+	buyBuffer: 0,
+	falsePositiveBuffer: 0,
+	sellBuffer: 0,
+	ATRmultiplier: 0,
 }
 
 const validateConfig = (): GlobalConfig => {
@@ -36,7 +37,7 @@ const validateConfig = (): GlobalConfig => {
 		return globalConfig
 	} else {
 		logError(validate.errors)
-		return standardConfig
+		return emptyConfig
 	}
 }
 
