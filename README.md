@@ -4,7 +4,8 @@ A trading bot for trading cryptocurrency
 
 The algorithm is based on the <a href="https://en.wikipedia.org/wiki/Coppock_curve" target="_blank">Coppock Curve</a> for **BUY** indication and ATR (WMA10 of TR) for **SELL** indication
 
-CoinGecko is used to get current price data
+CoinGecko is used to get current price data<br>
+<a href="https://docs.google.com/spreadsheets/d/1wTTuxXt8n9q7C4NDXqQpI3wpKu1_5bGVmP9Xz0XGSyU/edit#gid=0" target="_blank">Available coins at Coingecko</a>
 
 _ATT: I am no trading expert, use this at your own risk_
 
