@@ -2,12 +2,15 @@
 import chalk from 'chalk'
 import { config } from './ValidatedConfig'
 import { CurrentBuy, IndicationType } from '../components/Interfaces'
+require('dotenv').config()
 
 export const logHeader = (time: string): void => {
 	console.log(
 		chalk.whiteBright.bold('Crypto Bot') +
 			chalk.whiteBright(
-				` | Started: ${time.toString()}\nGraph frontend: http://localhost:4000/`
+				` | Started: ${time.toString()}\nGraph frontend: http://localhost:${
+					process.env.PORT
+				}/`
 			)
 	)
 }

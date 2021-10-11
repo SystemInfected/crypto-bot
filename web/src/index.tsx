@@ -7,6 +7,7 @@ import PriceChart from './components/PriceChart'
 import CoppockChart from './components/CoppockChart'
 import ChartContainer from './components/ChartContainer'
 import { logError } from './utils/Logger'
+require('dotenv').config()
 
 const App = (): JSX.Element => {
 	const [chartData, setChartData] = useState({
@@ -20,7 +21,7 @@ const App = (): JSX.Element => {
 	}
 	const getChartData = async (): Promise<void> => {
 		axios
-			.get('http://localhost:4000/chart_data', axiosConfig)
+			.get(`http://localhost:${process.env.PORT}/chart_data`, axiosConfig)
 			.then((dataRes) => {
 				setChartData(dataRes.data)
 			})
