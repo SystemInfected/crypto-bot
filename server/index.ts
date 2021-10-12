@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
+import ccxt, { Exchange } from 'ccxt'
 import {
 	getPrice,
 	getPriceDetails,
@@ -89,7 +90,7 @@ const initialLoad = async (): Promise<void> => {
 	})
 }
 
-const tick = async (): Promise<void> => {
+const tick = async (exchange: Exchange): Promise<void> => {
 	const priceData = await getPrice()
 	try {
 		const marketPrice =
@@ -111,6 +112,12 @@ const tick = async (): Promise<void> => {
 			priceDateFormatted,
 			coinValueFromStableCoin
 		)
+
+		/* const orders = await exchange.fetchOpenOrders(
+			`${config.coin.short}/${config.stableCoin.short}`
+		) */
+		const balance = await exchange.fetchBalance()
+		console.log('Account balance: ', balance)
 
 		const dateObject = new Date()
 		const dateFormatted = dateObject.toLocaleString()
@@ -202,10 +209,17 @@ const run = (): void => {
 	const dateObject = new Date()
 	const dateFormatted = dateObject.toLocaleString()
 	startupData.time = dateFormatted
+
+	const exchangeClient = new ccxt.binance({
+		apiKey: process.env.API_TEST_KEY,
+		secret: process.env.API_TEST_SECRET,
+	})
+	exchangeClient.setSandboxMode(true)
+
 	initialLoad()
 		.then(() => {
-			tick()
-			setInterval(tick, config.tickInterval * 1000 * 60)
+			tick(exchangeClient)
+			setInterval(tick, config.tickInterval * 1000 * 60, exchangeClient)
 		})
 		.catch((err) => {
 			logError(err)
