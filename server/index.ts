@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
-import ccxt, { Exchange } from 'ccxt'
+import ccxt, { Balance, Exchange } from 'ccxt'
 import {
 	getPrice,
 	getPriceDetails,
@@ -12,6 +12,7 @@ import { displayCurrentValueHeader } from './utils/Messenger'
 import { config } from './utils/ValidatedConfig'
 import {
 	clearLog,
+	logBalance,
 	logBuySellHistory,
 	logCurrentBuys,
 	logCurrentCoppockValue,
@@ -47,9 +48,13 @@ const atrValues: { atr: number; price: number }[] = []
 const buySellIndication: {
 	time: string
 	status: IndicationType
-	price: number
-	result: number
+	buyAmount: number
+	buyCost: number
+	marketPrice: number
+	result?: number
 }[] = []
+
+let exchangeBalance: Balance
 
 const currentBuys: CurrentBuy = {}
 
@@ -94,10 +99,10 @@ const tick = async (exchange: Exchange): Promise<void> => {
 	const priceData = await getPrice()
 	try {
 		const marketPrice =
-			priceData[config.coin.fullName.toLowerCase()].usd /
-			priceData[config.stableCoin.fullName.toLowerCase()].usd
+			priceData[config.coin.longName.toLowerCase()].usd /
+			priceData[config.stableCoin.longName.toLowerCase()].usd
 		const priceDateObject = new Date(
-			priceData[config.coin.fullName.toLowerCase()].last_updated_at * 1000
+			priceData[config.coin.longName.toLowerCase()].last_updated_at * 1000
 		)
 		const priceDateFormatted = priceDateObject.toLocaleString()
 		const priceTimeFormatted = priceDateObject.toLocaleTimeString([], {
@@ -112,12 +117,17 @@ const tick = async (exchange: Exchange): Promise<void> => {
 			priceDateFormatted,
 			coinValueFromStableCoin
 		)
-
-		/* const orders = await exchange.fetchOpenOrders(
-			`${config.coin.short}/${config.stableCoin.short}`
-		) */
 		const balance = await exchange.fetchBalance()
-		console.log('Account balance: ', balance)
+		try {
+			exchangeBalance = balance.total
+		} catch (error) {
+			logError(error)
+		}
+
+		const currentBalance =
+			exchangeBalance[config.stableCoin.shortName as keyof Balance]
+
+		const buyAmount = (currentBalance * config.allocation) / marketPrice
 
 		const dateObject = new Date()
 		const dateFormatted = dateObject.toLocaleString()
@@ -146,19 +156,33 @@ const tick = async (exchange: Exchange): Promise<void> => {
 						const analyzeBuyResult = analyzeCoppock(coppockValues)
 						switch (analyzeBuyResult) {
 							case IndicationType.BUY: {
-								const buyId = `${config.coin.short}${Date.now()}`
-								const atrValue = runATRAlgorithm(coinValueFromStableCoin)
-								buySellIndication.unshift({
-									time: dateFormatted,
-									status: IndicationType.BUY,
-									price: marketPrice,
-									result: atrValue,
-								})
-								atrValues.unshift({ atr: atrValue, price: marketPrice })
-								currentBuys[buyId] = {
-									time: dateFormatted,
-									price: marketPrice,
-									atr: atrValue,
+								const buyOrder = await exchange.createMarketOrder(
+									`${config.coin.shortName}/${config.stableCoin.shortName}`,
+									'buy',
+									buyAmount
+								)
+								try {
+									if (buyOrder.status === 'closed') {
+										const buyId = `${config.coin.shortName}${Date.now()}`
+										const atrValue = runATRAlgorithm(coinValueFromStableCoin)
+										buySellIndication.unshift({
+											time: dateFormatted,
+											status: IndicationType.BUY,
+											buyAmount: buyOrder.amount,
+											buyCost: buyOrder.cost,
+											marketPrice: marketPrice,
+										})
+										atrValues.unshift({ atr: atrValue, price: marketPrice })
+										currentBuys[buyId] = {
+											time: dateFormatted,
+											buyPrice: buyOrder.cost,
+											buyAmount: buyOrder.amount,
+											marketPrice: marketPrice,
+											atr: atrValue,
+										}
+									}
+								} catch (error) {
+									logError(error)
 								}
 								break
 							}
@@ -179,13 +203,26 @@ const tick = async (exchange: Exchange): Promise<void> => {
 				const analyzeSellResult = analyzeATR(key, currentBuy, marketPrice)
 				switch (analyzeSellResult) {
 					case IndicationType.SELL: {
-						buySellIndication.unshift({
-							time: dateFormatted,
-							status: IndicationType.SELL,
-							price: marketPrice,
-							result: marketPrice - currentBuy.price,
-						})
-						delete currentBuys[key]
+						const sellOrder = await exchange.createMarketOrder(
+							`${config.coin.shortName}/${config.stableCoin.shortName}`,
+							'sell',
+							currentBuy.buyAmount
+						)
+						try {
+							if (sellOrder.status === 'closed') {
+								buySellIndication.unshift({
+									time: dateFormatted,
+									status: IndicationType.SELL,
+									buyAmount: sellOrder.amount,
+									buyCost: sellOrder.cost,
+									marketPrice: marketPrice,
+									result: sellOrder.cost - currentBuy.buyPrice,
+								})
+								delete currentBuys[key]
+							}
+						} catch (error) {
+							logError(error)
+						}
 						break
 					}
 					case IndicationType.HODL:
@@ -196,7 +233,16 @@ const tick = async (exchange: Exchange): Promise<void> => {
 			}
 		}
 
+		const newBalance = await exchange.fetchBalance()
+		try {
+			exchangeBalance = newBalance.total
+		} catch (error) {
+			logError(error)
+		}
+
 		logCurrentCoppockValue(coppockValues[0] || 0)
+
+		logBalance(exchangeBalance)
 
 		logCurrentBuys(currentBuys)
 		logBuySellHistory(buySellIndication)
@@ -221,8 +267,8 @@ const run = (): void => {
 			tick(exchangeClient)
 			setInterval(tick, config.tickInterval * 1000 * 60, exchangeClient)
 		})
-		.catch((err) => {
-			logError(err)
+		.catch((error) => {
+			logError(error)
 		})
 }
 
@@ -233,7 +279,7 @@ ping()
 		logInfo(data.gecko_says)
 		run()
 	})
-	.catch((err) => logError(err))
+	.catch((error) => logError(error))
 
 app.get('/chart_data', async (req, res) => {
 	res.send({

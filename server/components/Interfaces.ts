@@ -1,12 +1,14 @@
 export interface GlobalConfig {
 	/** Cryptocurrency to trade (i.e. Etherium) */
 	coin: {
-		short: string
+		shortName: string
+		longName: string
 		fullName: string
 	}
 	/** Stable coin to compare against (Tether recommended) */
 	stableCoin: {
-		short: string
+		shortName: string
+		longName: string
 		fullName: string
 	}
 	/** Allocation of assets at exchange */
@@ -23,7 +25,7 @@ export interface GlobalConfig {
 	/** Usually ROC 14 */
 	longROC: number
 	/** Usually ROC 11 */
-	shortROC: number
+	shortNameROC: number
 	/** Usually WMA 10 */
 	WMA: number
 	/** Finetuning of when to buy */
@@ -45,7 +47,9 @@ export enum IndicationType {
 export interface CurrentBuy {
 	[key: string]: {
 		time: string
-		price: number
+		buyPrice: number
+		buyAmount: number
+		marketPrice: number
 		atr: number
 	}
 }

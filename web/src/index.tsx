@@ -7,7 +7,7 @@ import PriceChart from './components/PriceChart'
 import CoppockChart from './components/CoppockChart'
 import ChartContainer from './components/ChartContainer'
 import { logError } from './utils/Logger'
-require('dotenv').config()
+require('dotenv').config({ path: __dirname + '/./../../.env' })
 
 const App = (): JSX.Element => {
 	const [chartData, setChartData] = useState({

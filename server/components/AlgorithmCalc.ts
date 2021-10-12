@@ -26,14 +26,14 @@ export const runCoppockAlgorithm = (
 	coinValueFromStableCoin: number[]
 ): number | void => {
 	if (coinValueFromStableCoin.length >= config.minInitialValues) {
-		// Calculate sum of short ROC and long ROC
-		const short = getROC(coinValueFromStableCoin, config.shortROC)
+		// Calculate sum of shortName ROC and long ROC
+		const shortName = getROC(coinValueFromStableCoin, config.shortNameROC)
 		const long = getROC(coinValueFromStableCoin, config.longROC)
-		const sum = short + long
+		const sum = shortName + long
 		ROCsum.unshift(sum)
 	}
 	if (coinValueFromStableCoin.length >= config.minAlgorithmValues) {
-		// Calculate WMA of short ROC and long ROC
+		// Calculate WMA of shortName ROC and long ROC
 		const currentWMA = getWMA(ROCsum, config.WMA)
 		return currentWMA
 	}
@@ -88,14 +88,23 @@ export const analyzeCoppock = (coppockValues: number[]): IndicationType => {
 
 export const analyzeATR = (
 	buyId: string,
-	currentBuy: { time: string; price: number; atr: number },
+	currentBuy: {
+		time: string
+		buyPrice: number
+		buyAmount: number
+		marketPrice: number
+		atr: number
+	},
 	marketPrice: number
 ): IndicationType => {
 	const atrDelay = ATRDelayCheck.filter((atr) => atr === buyId)
 	// Analize if previous ATR is reach, if so SELL
-	if (marketPrice >= currentBuy.price + currentBuy.atr * config.ATRmultiplier) {
+	if (
+		marketPrice >=
+		currentBuy.marketPrice + currentBuy.atr * config.ATRmultiplier
+	) {
 		return IndicationType.SELL
-	} else if (marketPrice >= currentBuy.price + currentBuy.atr) {
+	} else if (marketPrice >= currentBuy.marketPrice + currentBuy.atr) {
 		if (atrDelay.length === config.sellBuffer) {
 			return IndicationType.SELL
 		} else {

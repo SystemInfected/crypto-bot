@@ -1,10 +1,12 @@
 {
 	"coin": {
-		"short": "ETH",
-		"fullName": "Ethereum"
+		"shortName": "BNB",
+		"longName": "Binancecoin",
+		"fullName": "Binance Coin"
 	},
 	"stableCoin": {
-		"short": "USDT",
+		"shortName": "USDT",
+		"longName": "Tether",
 		"fullName": "Tether"
 	},
 	"allocation": 0.1,
@@ -13,7 +15,7 @@
 	"minInitialValues": 15,
 	"minAlgorithmValues": 25,
 	"longROC": 14,
-	"shortROC": 11,
+	"shortNameROC": 11,
 	"WMA": 10,
 	"buyBuffer": 4,
 	"falsePositiveBuffer": 0.6,

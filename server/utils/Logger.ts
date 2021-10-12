@@ -2,11 +2,12 @@
 import chalk from 'chalk'
 import { config } from './ValidatedConfig'
 import { CurrentBuy, IndicationType } from '../components/Interfaces'
+import { Balance } from 'ccxt'
 require('dotenv').config()
 
 export const logHeader = (time: string): void => {
 	console.log(
-		chalk.whiteBright.bold('Crypto Bot') +
+		chalk.whiteBright.bold('Crypto Bot v 1.0.0') +
 			chalk.whiteBright(
 				` | Started: ${time.toString()}\nGraph frontend: http://localhost:${
 					process.env.PORT
@@ -43,7 +44,9 @@ export const logCoinValue = (time: string, value: number): void => {
 	console.log(
 		chalk.green('Current value: ') +
 			chalk.green.bold(
-				`${config.coin.short} (${value.toString()} ${config.stableCoin.short})`
+				`${config.coin.shortName} (${value.toString()} ${
+					config.stableCoin.shortName
+				})`
 			) +
 			chalk.white(` Updated: ${time}`)
 	)
@@ -55,6 +58,20 @@ export const logCurrentCoppockValue = (value: number): void => {
 	)
 }
 
+export const logBalance = (balance: Balance): void => {
+	const balanceString = Object.keys(balance)
+		.map((key, index) => {
+			const coinBalance = Object.values(balance).filter(
+				(value, i) => i === index
+			)
+			return `${key}: ${coinBalance}`
+		})
+		.join(', ')
+	console.log(
+		chalk.blue('\nExchange balance: ') + chalk.white.bold(balanceString)
+	)
+}
+
 export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
 	console.log(chalk.green('\nCurrent active orders:'))
 	for (const key in currentBuys) {
@@ -62,10 +79,12 @@ export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
 		console.log(
 			chalk.green.bold(`${key}: `) +
 				chalk.green(
-					`${config.coin.short} (${currentBuy.price} ${config.stableCoin.short})`
+					`${config.coin.shortName} ${currentBuy.buyAmount} (Cost: ${currentBuy.buyPrice} ${config.stableCoin.shortName})`
 				) +
 				chalk.white(
-					` ATR:${currentBuy.atr} (x${config.ATRmultiplier}) | ${currentBuy.time}`
+					` ATR:${currentBuy.atr * currentBuy.buyAmount} (x${
+						config.ATRmultiplier
+					}) | ${currentBuy.time}`
 				)
 		)
 	}
@@ -75,18 +94,20 @@ export const logBuySellHistory = (
 	buySellIndicationArr: Array<{
 		time: string
 		status: IndicationType
-		price: number
-		result: number
+		buyAmount: number
+		buyCost: number
+		marketPrice: number
+		result?: number
 	}>
 ): void => {
 	console.log(chalk.green('\nOrder history:'))
-	buySellIndicationArr.forEach((buySellIndication) => {
+	buySellIndicationArr.slice(0, 20).forEach((buySellIndication) => {
 		if (buySellIndication.status === IndicationType.BUY) {
 			console.log(
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('BUY ') +
 					chalk.green(
-						`${config.coin.short} (${buySellIndication.price} ${config.stableCoin.short})`
+						`${config.coin.shortName} ${buySellIndication.buyAmount} á ${buySellIndication.marketPrice} ${config.stableCoin.shortName} (Cost: ${buySellIndication.buyCost} ${config.stableCoin.shortName})`
 					)
 			)
 		} else if (buySellIndication.status === IndicationType.SELL) {
@@ -94,7 +115,7 @@ export const logBuySellHistory = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('SELL ') +
 					chalk.green(
-						`${config.coin.short} (${buySellIndication.price} ${config.stableCoin.short}) | GAIN (per 1 ${config.coin.short}):${buySellIndication.result} ${config.stableCoin.short}`
+						`${config.coin.shortName} ${buySellIndication.buyAmount} á ${buySellIndication.marketPrice} ${config.stableCoin.shortName} (Gain: ${buySellIndication.result} ${config.stableCoin.shortName})`
 					)
 			)
 		}

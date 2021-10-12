@@ -19,7 +19,7 @@ export const ping = async (): Promise<PingResponse> => {
 
 export const getPrice = async (): Promise<SimplePriceResponse> => {
 	const price = await client.simplePrice({
-		ids: `${config.coin.fullName.toLowerCase()},${config.stableCoin.fullName.toLowerCase()}`,
+		ids: `${config.coin.longName.toLowerCase()},${config.stableCoin.longName.toLowerCase()}`,
 		vs_currencies: 'usd',
 		include_last_updated_at: true,
 	})
@@ -28,7 +28,7 @@ export const getPrice = async (): Promise<SimplePriceResponse> => {
 
 export const getPriceDetails = async (): Promise<CoinFullInfo> => {
 	const price = await client.coinId({
-		id: config.coin.fullName.toLowerCase(),
+		id: config.coin.longName.toLowerCase(),
 		localization: false,
 		tickers: false,
 		community_data: false,
@@ -42,7 +42,7 @@ export const getPriceHistory = async (): Promise<CoinMarketChartResponse> => {
 	const lookBack =
 		Math.floor(Date.now() / 1000) - config.minAlgorithmValues * tickInterval
 	const history = await client.coinIdMarketChartRange({
-		id: config.coin.fullName.toLowerCase(),
+		id: config.coin.longName.toLowerCase(),
 		vs_currency: 'usd',
 		from: lookBack,
 		to: Math.floor(Date.now() / 1000),

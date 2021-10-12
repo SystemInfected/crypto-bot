@@ -19,6 +19,6 @@ _ATT: This is built mostly for fun. I am no trading expert, use this at your own
 - [ ] Test and fine tune algorithms until good BUY/SELL results
 - [x] Connect to Graph frontend
 - [x] Allow multiple concurrent orders
-- [ ] Connect to exchange
+- [x] Connect to exchange
 - [ ] Log BUY/SELL to file (for tax reports)
 - [ ] Earn money

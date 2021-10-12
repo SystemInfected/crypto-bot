@@ -1,14 +1,13 @@
 {
 	"name": "web",
-	"version": "1.0.1",
-	"proxy": "http://localhost:4000",
+	"version": "1.0.0",
 	"description": "",
 	"main": "index.js",
 	"scripts": {
 		"dev": "parcel src/index.html -p 3030",
 		"build": "parcel build src/index.html"
 	},
-	"author": "Sebastian Wdiin",
+	"author": "Sebastian Widin",
 	"license": "ISC",
 	"dependencies": {
 		"@types/react": "^17.0.24",
@@ -16,7 +15,6 @@
 		"@types/styled-components": "^5.1.14",
 		"axios": "^0.21.4",
 		"chalk": "^2.4.2",
-		"dotenv": "^5.0.1",
 		"react": "^17.0.2",
 		"react-dom": "^17.0.2",
 		"recharts": "^2.1.4",
