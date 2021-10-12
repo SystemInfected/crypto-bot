@@ -8,7 +8,10 @@ import {
 	getPriceHistory,
 	ping,
 } from './components/CryptoData'
-import { displayCurrentValueHeader } from './utils/Messenger'
+import {
+	displayCurrentValueHeader,
+	displayLoadingHeader,
+} from './utils/Messenger'
 import { config } from './utils/ValidatedConfig'
 import {
 	clearLog,
@@ -18,6 +21,7 @@ import {
 	logCurrentCoppockValue,
 	logError,
 	logInfo,
+	logStatus,
 } from './utils/Logger'
 import { CurrentBuy, IndicationType } from './components/Interfaces'
 import {
@@ -53,6 +57,8 @@ const buySellIndication: {
 	marketPrice: number
 	result?: number
 }[] = []
+
+let currentStatus: string
 
 let exchangeBalance: Balance
 
@@ -96,8 +102,11 @@ const initialLoad = async (): Promise<void> => {
 }
 
 const tick = async (exchange: Exchange): Promise<void> => {
+	currentStatus = 'Waiting for indication to buy'
 	const priceData = await getPrice()
 	try {
+		displayLoadingHeader(startupData.time)
+
 		const marketPrice =
 			priceData[config.coin.longName.toLowerCase()].usd /
 			priceData[config.stableCoin.longName.toLowerCase()].usd
@@ -111,12 +120,7 @@ const tick = async (exchange: Exchange): Promise<void> => {
 		})
 		coinValueFromStableCoin.unshift(marketPrice)
 		priceChartData.push({ time: priceTimeFormatted, price: marketPrice })
-		displayCurrentValueHeader(
-			startupData.time,
-			marketPrice,
-			priceDateFormatted,
-			coinValueFromStableCoin
-		)
+
 		const balance = await exchange.fetchBalance()
 		try {
 			exchangeBalance = balance.total
@@ -191,11 +195,15 @@ const tick = async (exchange: Exchange): Promise<void> => {
 							default:
 								break
 						}
+					} else {
+						currentStatus = `Market price is above max price to buy (${maxBuyPrice} ${config.stableCoin.shortName})`
 					}
 				}
 			} catch (error) {
 				logError(error)
 			}
+		} else {
+			currentStatus = `Concurrent orders limit(${config.concurrentOrders}) is reached`
 		}
 		if (Object.keys(currentBuys).length > 0) {
 			for (const key in currentBuys) {
@@ -240,10 +248,14 @@ const tick = async (exchange: Exchange): Promise<void> => {
 			logError(error)
 		}
 
+		displayCurrentValueHeader(
+			startupData.time,
+			priceDateFormatted,
+			coinValueFromStableCoin
+		)
 		logCurrentCoppockValue(coppockValues[0] || 0)
-
+		logStatus(currentStatus)
 		logBalance(exchangeBalance)
-
 		logCurrentBuys(currentBuys)
 		logBuySellHistory(buySellIndication)
 	} catch (error) {

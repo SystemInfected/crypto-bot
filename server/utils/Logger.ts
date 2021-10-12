@@ -40,6 +40,12 @@ export const logSuccess = (data: unknown): void => {
 	}
 }
 
+export const logStatus = (status: string): void => {
+	if (status) {
+		console.log(chalk.blue.bold('\nStatus: ') + chalk.blue(status))
+	}
+}
+
 export const logCoinValue = (time: string, value: number): void => {
 	console.log(
 		chalk.green('Current value: ') +
@@ -74,6 +80,9 @@ export const logBalance = (balance: Balance): void => {
 
 export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
 	console.log(chalk.green('\nCurrent active orders:'))
+	if (Object.keys(currentBuys).length === 0) {
+		console.log(chalk.white('No active orders'))
+	}
 	for (const key in currentBuys) {
 		const currentBuy = currentBuys[key]
 		console.log(
@@ -101,6 +110,9 @@ export const logBuySellHistory = (
 	}>
 ): void => {
 	console.log(chalk.green('\nOrder history:'))
+	if (buySellIndicationArr.length === 0) {
+		console.log(chalk.white('Order history is empty'))
+	}
 	buySellIndicationArr.slice(0, 20).forEach((buySellIndication) => {
 		if (buySellIndication.status === IndicationType.BUY) {
 			console.log(
