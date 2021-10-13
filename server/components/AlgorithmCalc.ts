@@ -1,12 +1,12 @@
 import { config } from '../utils/ValidatedConfig'
-import { IndicationType } from './Interfaces'
+import { CoinValuesProps, IndicationType } from './Interfaces'
 
 const ROCsum: number[] = []
 let ATRDelayCheck: string[] = []
 
-const getROC = (coinValueFromStableCoin: number[], ROCrate: number): number => {
-	const currentValue = coinValueFromStableCoin[0]
-	const pastValue = coinValueFromStableCoin[ROCrate]
+const getROC = (coinHistory: CoinValuesProps[], ROCrate: number): number => {
+	const currentValue = coinHistory[0].close
+	const pastValue = coinHistory[ROCrate].close
 	const ROC = ((currentValue - pastValue) / pastValue) * 100
 	return ROC
 }
@@ -23,32 +23,30 @@ const getWMA = (ROCsum: number[], WMArate: number): number => {
 }
 
 export const runCoppockAlgorithm = (
-	coinValueFromStableCoin: number[]
+	coinHistory: CoinValuesProps[]
 ): number | void => {
-	if (coinValueFromStableCoin.length >= config.minInitialValues) {
+	if (coinHistory.length >= config.minInitialValues) {
 		// Calculate sum of shortName ROC and long ROC
-		const shortName = getROC(coinValueFromStableCoin, config.shortNameROC)
-		const long = getROC(coinValueFromStableCoin, config.longROC)
-		const sum = shortName + long
+		const short = getROC(coinHistory, config.shortROC)
+		const long = getROC(coinHistory, config.longROC)
+		const sum = short + long
 		ROCsum.unshift(sum)
 	}
-	if (coinValueFromStableCoin.length >= config.minAlgorithmValues) {
+	if (coinHistory.length >= config.minAlgorithmValues) {
 		// Calculate WMA of shortName ROC and long ROC
 		const currentWMA = getWMA(ROCsum, config.WMA)
 		return currentWMA
 	}
 }
 
-export const runATRAlgorithm = (coinValueFromStableCoin: number[]): number => {
+export const runATRAlgorithm = (coinHistory: CoinValuesProps[]): number => {
 	const TRValues: number[] = []
 	for (let i = 1; i < config.WMA + 1; i++) {
-		if (coinValueFromStableCoin[i] > coinValueFromStableCoin[i + 1]) {
-			const TR = coinValueFromStableCoin[i] - coinValueFromStableCoin[i + 1]
-			TRValues.push(TR)
-		} else {
-			const TR = coinValueFromStableCoin[i + 1] - coinValueFromStableCoin[i]
-			TRValues.push(TR)
-		}
+		const TR: number[] = []
+		TR.push(coinHistory[i].high - coinHistory[i].low)
+		TR.push(coinHistory[i + 1].close - coinHistory[i].low)
+		TR.push(coinHistory[i].high - coinHistory[i + 1].close)
+		TRValues.push(Math.max(...TR))
 	}
 	const ATR = getWMA(TRValues, config.WMA)
 	return ATR
@@ -92,19 +90,19 @@ export const analyzeATR = (
 		time: string
 		buyPrice: number
 		buyAmount: number
-		marketPrice: number
+		averagePrice: number
 		atr: number
 	},
-	marketPrice: number
+	averagePrice: number
 ): IndicationType => {
 	const atrDelay = ATRDelayCheck.filter((atr) => atr === buyId)
 	// Analize if previous ATR is reach, if so SELL
 	if (
-		marketPrice >=
-		currentBuy.marketPrice + currentBuy.atr * config.ATRmultiplier
+		averagePrice >=
+		currentBuy.averagePrice + currentBuy.atr * config.ATRmultiplier
 	) {
 		return IndicationType.SELL
-	} else if (marketPrice >= currentBuy.marketPrice + currentBuy.atr) {
+	} else if (averagePrice >= currentBuy.averagePrice + currentBuy.atr) {
 		if (atrDelay.length === config.sellBuffer) {
 			return IndicationType.SELL
 		} else {
