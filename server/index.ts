@@ -184,6 +184,9 @@ const tick = async (exchange: Exchange): Promise<void> => {
 											marketPrice: marketPrice,
 											atr: atrValue,
 										}
+									} else if (buyOrder.status === 'canceled') {
+										currentStatus =
+											'Buy order got canceled, waiting for new indication to buy'
 									}
 								} catch (error) {
 									logError(error)
@@ -196,7 +199,7 @@ const tick = async (exchange: Exchange): Promise<void> => {
 								break
 						}
 					} else {
-						currentStatus = `Market price is above max price to buy (${maxBuyPrice} ${config.stableCoin.shortName})`
+						currentStatus = `Market price is above the buy limit (${maxBuyPrice} ${config.stableCoin.shortName})`
 					}
 				}
 			} catch (error) {
@@ -227,6 +230,9 @@ const tick = async (exchange: Exchange): Promise<void> => {
 									result: sellOrder.cost - currentBuy.buyPrice,
 								})
 								delete currentBuys[key]
+							} else if (sellOrder.status === 'canceled') {
+								currentStatus =
+									'Sell order got canceled, waiting for new indication to sell'
 							}
 						} catch (error) {
 							logError(error)

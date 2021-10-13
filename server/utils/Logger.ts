@@ -7,7 +7,7 @@ require('dotenv').config()
 
 export const logHeader = (time: string): void => {
 	console.log(
-		chalk.whiteBright.bold('Crypto Bot v 1.0.0') +
+		chalk.whiteBright.bold('Crypto Bot v. 1.0.0') +
 			chalk.whiteBright(
 				` | Started: ${time.toString()}\nGraph frontend: http://localhost:${
 					process.env.PORT
@@ -42,13 +42,13 @@ export const logSuccess = (data: unknown): void => {
 
 export const logStatus = (status: string): void => {
 	if (status) {
-		console.log(chalk.blue.bold('\nStatus: ') + chalk.blue(status))
+		console.log(chalk.blue('\nStatus: ') + chalk.white(status))
 	}
 }
 
 export const logCoinValue = (time: string, value: number): void => {
 	console.log(
-		chalk.green('Current value: ') +
+		chalk.green('\nCurrent value: ') +
 			chalk.green.bold(
 				`${config.coin.shortName} (${value.toString()} ${
 					config.stableCoin.shortName
@@ -73,9 +73,7 @@ export const logBalance = (balance: Balance): void => {
 			return `${key}: ${coinBalance}`
 		})
 		.join(', ')
-	console.log(
-		chalk.blue('\nExchange balance: ') + chalk.white.bold(balanceString)
-	)
+	console.log(chalk.blue('\nExchange balance: ') + chalk.white(balanceString))
 }
 
 export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
@@ -119,7 +117,7 @@ export const logBuySellHistory = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('BUY ') +
 					chalk.green(
-						`${config.coin.shortName} ${buySellIndication.buyAmount} á ${buySellIndication.marketPrice} ${config.stableCoin.shortName} (Cost: ${buySellIndication.buyCost} ${config.stableCoin.shortName})`
+						`${config.coin.shortName} ${buySellIndication.buyAmount} | Market price: ${buySellIndication.marketPrice} ${config.stableCoin.shortName} (Cost: ${buySellIndication.buyCost} ${config.stableCoin.shortName})`
 					)
 			)
 		} else if (buySellIndication.status === IndicationType.SELL) {
@@ -127,7 +125,7 @@ export const logBuySellHistory = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('SELL ') +
 					chalk.green(
-						`${config.coin.shortName} ${buySellIndication.buyAmount} á ${buySellIndication.marketPrice} ${config.stableCoin.shortName} (Gain: ${buySellIndication.result} ${config.stableCoin.shortName})`
+						`${config.coin.shortName} ${buySellIndication.buyAmount} | Market price: ${buySellIndication.marketPrice} ${config.stableCoin.shortName} (Gain: ${buySellIndication.result} ${config.stableCoin.shortName})`
 					)
 			)
 		}
