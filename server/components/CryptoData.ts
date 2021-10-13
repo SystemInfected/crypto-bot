@@ -1,51 +1,95 @@
-/* eslint-disable @typescript-eslint/camelcase */
-import {
-	CoinFullInfo,
-	CoinGeckoClient,
-	PingResponse,
-	SimplePriceResponse,
-	CoinMarketChartResponse,
-} from 'coingecko-api-v3'
-import { config } from '../utils/ValidatedConfig'
-const client = new CoinGeckoClient({
-	timeout: 10000,
-	autoRetry: true,
-})
+import ccxt, { Balance, OHLCV, Order } from 'ccxt'
 
-export const ping = async (): Promise<PingResponse> => {
-	const ping = await client.ping()
+import { config } from '../utils/ValidatedConfig'
+
+const exchangeClient = new ccxt.binance({
+	apiKey: process.env.API_TEST_KEY,
+	secret: process.env.API_TEST_SECRET,
+	enableRateLimit: true,
+})
+exchangeClient.setSandboxMode(true)
+
+/* export const ping = async (): Promise<string> => {
+	const ping = await exchangeClient.fetchStatus()
+	return ping.status
+} */
+export const ping = (): string => {
+	const ping = 'ok'
 	return ping
 }
 
-export const getPrice = async (): Promise<SimplePriceResponse> => {
-	const price = await client.simplePrice({
-		ids: `${config.coin.longName.toLowerCase()},${config.stableCoin.longName.toLowerCase()}`,
-		vs_currencies: 'usd',
-		include_last_updated_at: true,
-	})
-	return price
+export const getBalance = async (): Promise<{
+	total: Balance
+	currentCoin: number
+}> => {
+	const balance = await exchangeClient.fetchBalance()
+
+	return {
+		total: balance.total,
+		currentCoin: balance.total[config.stableCoin.shortName as keyof Balance],
+	}
 }
 
-export const getPriceDetails = async (): Promise<CoinFullInfo> => {
-	const price = await client.coinId({
-		id: config.coin.longName.toLowerCase(),
-		localization: false,
-		tickers: false,
-		community_data: false,
-		developer_data: false,
-	})
-	return price
+export const createBuyOrder = async (buyAmount: number): Promise<Order> => {
+	const buyOrder = await exchangeClient.createMarketOrder(
+		`${config.coin.shortName}/${config.stableCoin.shortName}`,
+		'buy',
+		buyAmount
+	)
+	return buyOrder
 }
 
-export const getPriceHistory = async (): Promise<CoinMarketChartResponse> => {
-	const tickInterval = 300
+export const createSellOrder = async (sellAmount: number): Promise<Order> => {
+	const sellOrder = await exchangeClient.createMarketOrder(
+		`${config.coin.shortName}/${config.stableCoin.shortName}`,
+		'sell',
+		sellAmount
+	)
+	return sellOrder
+}
+
+export const getPrice = async (): Promise<OHLCV> => {
+	const lookBack = Math.floor(Date.now()) - 5 * (config.tickInterval * 60000)
+	const price = await exchangeClient.fetchOHLCV(
+		`${config.coin.shortName}/${config.stableCoin.shortName}`,
+		`${config.tickInterval}m`,
+		lookBack
+	)
+	return price[price.length - 1]
+}
+
+export const get24hPriceDetails = async (): Promise<{
+	timestamp: number
+	open: number
+	high: number
+	low: number
+	close: number
+	volume: number
+}> => {
+	const lookBack = Math.floor(Date.now()) - 2 * 3600 * 1000 * 24 // 2 days back
+	const price = await exchangeClient.fetchOHLCV(
+		`${config.coin.shortName}/${config.stableCoin.shortName}`,
+		'1d',
+		lookBack
+	)
+	return {
+		timestamp: price[price.length - 1][0],
+		open: price[price.length - 1][1],
+		high: price[price.length - 1][2],
+		low: price[price.length - 1][3],
+		close: price[price.length - 1][4],
+		volume: price[price.length - 1][5],
+	}
+}
+
+export const getPriceHistory = async (): Promise<OHLCV[]> => {
 	const lookBack =
-		Math.floor(Date.now() / 1000) - config.minAlgorithmValues * tickInterval
-	const history = await client.coinIdMarketChartRange({
-		id: config.coin.longName.toLowerCase(),
-		vs_currency: 'usd',
-		from: lookBack,
-		to: Math.floor(Date.now() / 1000),
-	})
+		Math.floor(Date.now()) -
+		config.minAlgorithmValues * (config.tickInterval * 60000)
+	const history = await exchangeClient.fetchOHLCV(
+		`${config.coin.shortName}/${config.stableCoin.shortName}`,
+		`${config.tickInterval}m`,
+		lookBack
+	)
 	return history
 }

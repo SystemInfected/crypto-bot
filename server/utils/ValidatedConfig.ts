@@ -26,7 +26,7 @@ const emptyConfig: GlobalConfig = {
 	minInitialValues: 0,
 	minAlgorithmValues: 0,
 	longROC: 0,
-	shortNameROC: 0,
+	shortROC: 0,
 	WMA: 0,
 	buyBuffer: 0,
 	falsePositiveBuffer: 0,

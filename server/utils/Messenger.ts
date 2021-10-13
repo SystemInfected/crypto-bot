@@ -9,9 +9,9 @@ export const displayLoadingHeader = (startTime: string): void => {
 export const displayCurrentValueHeader = (
 	startTime: string,
 	dateFormatted: string,
-	coinValueFromStableCoin: number[]
+	averagePrice: number
 ): void => {
 	clearLog()
 	logHeader(startTime)
-	logCoinValue(dateFormatted, coinValueFromStableCoin[0])
+	logCoinValue(dateFormatted, averagePrice)
 }

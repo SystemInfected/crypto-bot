@@ -13,8 +13,8 @@ export interface GlobalConfig {
 	}
 	/** Allocation of assets at exchange */
 	allocation: number
-	/** Interval (minutes) inbetween each request for current values
-	 * Coingecko caching is about 2-3 minutes so anything under that is unnecessary */
+	/** "Interval (minutes) inbetween each request for current values.
+	 * Allowed intervals for Binance is 1m, 3m, 5m, 15m, 30m */
 	tickInterval: number
 	/** Max amount of orders at the same time */
 	concurrentOrders: number
@@ -25,7 +25,7 @@ export interface GlobalConfig {
 	/** Usually ROC 14 */
 	longROC: number
 	/** Usually ROC 11 */
-	shortNameROC: number
+	shortROC: number
 	/** Usually WMA 10 */
 	WMA: number
 	/** Finetuning of when to buy */
@@ -49,7 +49,17 @@ export interface CurrentBuy {
 		time: string
 		buyPrice: number
 		buyAmount: number
-		marketPrice: number
+		averagePrice: number
 		atr: number
 	}
+}
+
+export interface CoinValuesProps {
+	timestamp: number
+	open: number
+	high: number
+	low: number
+	close: number
+	volume: number
+	average: number
 }

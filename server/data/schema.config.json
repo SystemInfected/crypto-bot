@@ -39,7 +39,7 @@
 		},
 		"tickInterval": {
 			"type": "number",
-			"description": "Interval (minutes) inbetween each request for current values. Coingecko caching is about 2-3 minutes so anything under that is unnecessary"
+			"description": "Interval (minutes) inbetween each request for current values. Allowed intervals for Binance is 1m, 3m, 5m, 15m, 30m"
 		},
 		"concurrentOrders": {
 			"type": "integer",
@@ -57,7 +57,7 @@
 			"type": "integer",
 			"description": "Usually ROC 14"
 		},
-		"shortNameROC": {
+		"shortROC": {
 			"type": "integer",
 			"description": "Usually ROC 11"
 		},
@@ -91,7 +91,7 @@
 		"minInitialValues",
 		"minAlgorithmValues",
 		"longROC",
-		"shortNameROC",
+		"shortROC",
 		"WMA",
 		"buyBuffer",
 		"sellBuffer",
