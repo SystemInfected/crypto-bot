@@ -40,17 +40,28 @@ export const logSuccess = (data: unknown): void => {
 	}
 }
 
-export const logStatus = (status: string): void => {
+export const logStatus = (status: string, sellStatus: string): void => {
 	if (status) {
-		console.log(chalk.blue('\nStatus: ') + chalk.white(status))
+		console.log(chalk.blue('\nBuy status: ') + chalk.white(status))
+		if (sellStatus) {
+			console.log(chalk.blue('Sell status: ') + chalk.white(sellStatus))
+		}
+	}
+}
+
+export const logDetails = (data: unknown): void => {
+	if (typeof data === 'string') {
+		console.log(chalk.white(`${data}`))
+	} else {
+		console.log(chalk.white(`${JSON.stringify(data)}`))
 	}
 }
 
 export const logCoinValue = (time: string, value: number): void => {
 	console.log(
-		chalk.green('\nCurrent value: ') +
+		chalk.green('\nCurrent average price: ') +
 			chalk.green.bold(
-				`${config.coin.shortName} (${value.toString()} ${
+				`${config.coin.shortName} (${value.toFixed(2)} ${
 					config.stableCoin.shortName
 				})`
 			) +
@@ -60,7 +71,8 @@ export const logCoinValue = (time: string, value: number): void => {
 
 export const logCurrentCoppockValue = (value: number): void => {
 	console.log(
-		chalk.green('Current Coppock value: ') + chalk.green.bold(value.toString())
+		chalk.green('\nCurrent Coppock value: ') +
+			chalk.green.bold(value.toString())
 	)
 }
 
@@ -117,7 +129,7 @@ export const logBuySellHistory = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('BUY ') +
 					chalk.green(
-						`${config.coin.shortName} ${buySellIndication.buyAmount} | Market price: ${buySellIndication.averagePrice} ${config.stableCoin.shortName} (Cost: ${buySellIndication.buyCost} ${config.stableCoin.shortName})`
+						`${config.coin.shortName} ${buySellIndication.buyAmount} | Average price: ${buySellIndication.averagePrice} ${config.stableCoin.shortName} (Cost: ${buySellIndication.buyCost} ${config.stableCoin.shortName})`
 					)
 			)
 		} else if (buySellIndication.status === IndicationType.SELL) {

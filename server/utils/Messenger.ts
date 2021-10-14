@@ -1,4 +1,11 @@
-import { logInfo, logCoinValue, clearLog, logHeader } from './Logger'
+import { CoinValuesProps } from '../components/Interfaces'
+import {
+	logInfo,
+	logCoinValue,
+	clearLog,
+	logHeader,
+	logDetails,
+} from './Logger'
 
 export const displayLoadingHeader = (startTime: string): void => {
 	clearLog()
@@ -9,9 +16,12 @@ export const displayLoadingHeader = (startTime: string): void => {
 export const displayCurrentValueHeader = (
 	startTime: string,
 	dateFormatted: string,
-	averagePrice: number
+	coinValue: CoinValuesProps
 ): void => {
 	clearLog()
 	logHeader(startTime)
-	logCoinValue(dateFormatted, averagePrice)
+	logCoinValue(dateFormatted, coinValue.average)
+	logDetails(
+		`Open: ${coinValue.open} High: ${coinValue.high} Low: ${coinValue.low} Close: ${coinValue.close}`
+	)
 }

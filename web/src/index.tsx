@@ -56,10 +56,10 @@ const App = (): JSX.Element => {
 		<>
 			<Header />
 			<ChartContainer title={`${configData.coin} / ${configData.stableCoin}`}>
-				<PriceChart data={priceChartData.slice(-60)} />
+				<PriceChart data={priceChartData.slice(-50)} />
 			</ChartContainer>
 			<ChartContainer title="Coppock Curve">
-				<CoppockChart data={coppockChartData.slice(-60)} />
+				<CoppockChart data={coppockChartData.slice(-50)} />
 			</ChartContainer>
 		</>
 	)

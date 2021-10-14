@@ -64,6 +64,7 @@ const buySellIndication: {
 }[] = []
 
 let currentStatus: string
+let currentSellStatus: string
 
 const currentBuys: CurrentBuy = {}
 
@@ -202,7 +203,7 @@ const tick = async (): Promise<void> => {
 							break
 					}
 				} else {
-					currentStatus = `Market price is above the buy limit (${maxBuyPrice} ${config.stableCoin.shortName})`
+					currentStatus = `Average price is above the buy limit (${maxBuyPrice} ${config.stableCoin.shortName})`
 				}
 			} catch (error) {
 				logError(`Get price details error:  ${error}`)
@@ -211,6 +212,7 @@ const tick = async (): Promise<void> => {
 			currentStatus = `Concurrent orders limit(${config.concurrentOrders}) is reached`
 		}
 		if (Object.keys(currentBuys).length > 0) {
+			currentSellStatus = "Evaluating if it's time to sell"
 			for (const key in currentBuys) {
 				const currentBuy = currentBuys[key]
 				const analyzeSellResult = analyzeATR(
@@ -231,9 +233,10 @@ const tick = async (): Promise<void> => {
 									averagePrice: averagePrice,
 									result: sellOrder.cost - currentBuy.buyPrice,
 								})
+								currentSellStatus = ''
 								delete currentBuys[key]
 							} else if (sellOrder.status === 'canceled') {
-								currentStatus =
+								currentSellStatus =
 									'Sell order got canceled, waiting for new indication to sell'
 							}
 						} catch (error) {
@@ -251,13 +254,9 @@ const tick = async (): Promise<void> => {
 
 		const newBalance = await getBalance()
 
-		displayCurrentValueHeader(
-			startupData.time,
-			dateFormatted,
-			coinHistory[0].average
-		)
+		displayCurrentValueHeader(startupData.time, dateFormatted, coinHistory[0])
 		logCurrentCoppockValue(coppockValues[0] || 0)
-		logStatus(currentStatus)
+		logStatus(currentStatus, currentSellStatus)
 		logBalance(newBalance.total)
 		logCurrentBuys(currentBuys)
 		logBuySellHistory(buySellIndication)
