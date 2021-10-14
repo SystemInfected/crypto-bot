@@ -2,12 +2,18 @@ import ccxt, { Balance, OHLCV, Order } from 'ccxt'
 
 import { config } from '../utils/ValidatedConfig'
 
-const exchangeClient = new ccxt.binance({
+const exchangeTestClient = new ccxt.binance({
 	apiKey: process.env.API_TEST_KEY,
 	secret: process.env.API_TEST_SECRET,
 	enableRateLimit: true,
 })
-exchangeClient.setSandboxMode(true)
+exchangeTestClient.setSandboxMode(true)
+
+const exchangeClient = new ccxt.binance({
+	apiKey: process.env.API_KEY,
+	secret: process.env.API_SECRET,
+	enableRateLimit: true,
+})
 
 /* export const ping = async (): Promise<string> => {
 	const ping = await exchangeClient.fetchStatus()
@@ -22,7 +28,7 @@ export const getBalance = async (): Promise<{
 	total: Balance
 	currentCoin: number
 }> => {
-	const balance = await exchangeClient.fetchBalance()
+	const balance = await exchangeTestClient.fetchBalance()
 
 	return {
 		total: balance.total,
@@ -31,7 +37,7 @@ export const getBalance = async (): Promise<{
 }
 
 export const createBuyOrder = async (buyAmount: number): Promise<Order> => {
-	const buyOrder = await exchangeClient.createMarketOrder(
+	const buyOrder = await exchangeTestClient.createMarketOrder(
 		`${config.coin.shortName}/${config.stableCoin.shortName}`,
 		'buy',
 		buyAmount
@@ -40,7 +46,7 @@ export const createBuyOrder = async (buyAmount: number): Promise<Order> => {
 }
 
 export const createSellOrder = async (sellAmount: number): Promise<Order> => {
-	const sellOrder = await exchangeClient.createMarketOrder(
+	const sellOrder = await exchangeTestClient.createMarketOrder(
 		`${config.coin.shortName}/${config.stableCoin.shortName}`,
 		'sell',
 		sellAmount
@@ -85,11 +91,11 @@ export const get24hPriceDetails = async (): Promise<{
 export const getPriceHistory = async (): Promise<OHLCV[]> => {
 	const lookBack =
 		Math.floor(Date.now()) -
-		config.minAlgorithmValues * (config.tickInterval * 60000)
+		(config.minAlgorithmValues + 1) * (config.tickInterval * 60000)
 	const history = await exchangeClient.fetchOHLCV(
 		`${config.coin.shortName}/${config.stableCoin.shortName}`,
 		`${config.tickInterval}m`,
 		lookBack
 	)
-	return history
+	return history.slice(1, config.minAlgorithmValues)
 }

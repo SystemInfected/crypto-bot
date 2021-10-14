@@ -12,7 +12,20 @@ require('dotenv').config({ path: __dirname + '/./../../.env' })
 const App = (): JSX.Element => {
 	const [chartData, setChartData] = useState({
 		configData: { coin: '', stableCoin: '', minInitialValues: 0 },
-		priceChartData: [{ time: '', price: 0 }],
+		priceChartData: [
+			{
+				time: '',
+				price: {
+					timestamp: 0,
+					open: 0,
+					high: 0,
+					low: 0,
+					close: 0,
+					volume: 0,
+					average: 0,
+				},
+			},
+		],
 		coppockChartData: [{ time: '', coppockValue: 0 }],
 	})
 

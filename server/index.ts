@@ -43,7 +43,7 @@ interface StartupDataProps {
 
 const startupData: StartupDataProps = { time: '' }
 const coinHistory: Array<CoinValuesProps> = []
-const priceChartData: Array<{ time: string; price: number }> = []
+const priceChartData: Array<{ time: string; price: CoinValuesProps }> = []
 const coppockValues: number[] = []
 const coppockChartData: Array<{
 	time: string
@@ -91,7 +91,7 @@ const initialLoad = async (): Promise<void> => {
 			minute: '2-digit',
 		})
 
-		coinHistory.unshift({
+		const coinValue: CoinValuesProps = {
 			timestamp: history[0],
 			open: history[1],
 			high: history[2],
@@ -99,8 +99,9 @@ const initialLoad = async (): Promise<void> => {
 			close: history[4],
 			volume: history[5],
 			average: averagePrice,
-		})
-		priceChartData.push({ time: timeFormatted, price: averagePrice })
+		}
+		coinHistory.unshift(coinValue)
+		priceChartData.push({ time: timeFormatted, price: coinValue })
 
 		if (index >= config.minInitialValues) {
 			const coppockValue = runCoppockAlgorithm(coinHistory)
@@ -136,7 +137,7 @@ const tick = async (): Promise<void> => {
 			minute: '2-digit',
 		})
 		coinHistory.unshift(currentPrice)
-		priceChartData.push({ time: priceTimeFormatted, price: averagePrice })
+		priceChartData.push({ time: priceTimeFormatted, price: currentPrice })
 
 		const balance = await getBalance()
 		const currentBalance = balance.currentCoin
