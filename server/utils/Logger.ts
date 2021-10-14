@@ -125,7 +125,7 @@ export const logBuySellHistory = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('SELL ') +
 					chalk.green(
-						`${config.coin.shortName} ${buySellIndication.buyAmount} | Market price: ${buySellIndication.averagePrice} ${config.stableCoin.shortName} (Gain: ${buySellIndication.result} ${config.stableCoin.shortName})`
+						`${config.coin.shortName} ${buySellIndication.buyAmount} | Price: ${buySellIndication.buyCost} ${config.stableCoin.shortName} (Gain: ${buySellIndication.result} ${config.stableCoin.shortName})`
 					)
 			)
 		}
