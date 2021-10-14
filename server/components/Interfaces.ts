@@ -2,13 +2,11 @@ export interface GlobalConfig {
 	/** Cryptocurrency to trade (i.e. Etherium) */
 	coin: {
 		shortName: string
-		longName: string
 		fullName: string
 	}
 	/** Stable coin to compare against (Tether recommended) */
 	stableCoin: {
 		shortName: string
-		longName: string
 		fullName: string
 	}
 	/** Allocation of assets at exchange */
@@ -30,7 +28,7 @@ export interface GlobalConfig {
 	WMA: number
 	/** Finetuning of when to buy */
 	buyBuffer: number
-	/** Multiplier of 24h price change to avoid buying at false positive (too close to daily high) */
+	/** Multiplier of 12h price change to avoid buying at false positive (too close to 12 closing price) */
 	falsePositiveBuffer: number
 	/** Finetuning of when to sell */
 	sellBuffer: number
@@ -52,6 +50,15 @@ export interface CurrentBuy {
 		averagePrice: number
 		atr: number
 	}
+}
+
+export interface TickerValue {
+	timestamp: number
+	open: number
+	high: number
+	low: number
+	close: number
+	volume: number
 }
 
 export interface CoinValuesProps {

@@ -9,6 +9,7 @@ import {
 	ResponsiveContainer,
 	ComposedChart,
 	Bar,
+	ErrorBar,
 } from 'recharts'
 import { color } from '../styles/variables'
 
@@ -28,10 +29,22 @@ interface PriceChartProps {
 
 const PriceChart = ({ data }: PriceChartProps): JSX.Element => {
 	const chartData = data.map((d) => {
+		if (d.price.close > d.price.open) {
+			return {
+				time: d.time,
+				average: d.price.average,
+				openClose: [d.price.open, d.price.close],
+				greenCandle: [
+					d.price.close - d.price.low,
+					d.price.high - d.price.close,
+				],
+			}
+		}
 		return {
 			time: d.time,
 			average: d.price.average,
-			candle: [d.price.open, d.price.close],
+			openClose: [d.price.close, d.price.open],
+			redCandle: [d.price.open - d.price.low, d.price.high - d.price.open],
 		}
 	})
 	return (
@@ -47,7 +60,8 @@ const PriceChart = ({ data }: PriceChartProps): JSX.Element => {
 				barCategoryGap="10%"
 			>
 				<CartesianGrid strokeDasharray="0" stroke="rgba(255, 255, 255, 0.1)" />
-				<XAxis dataKey="time" />
+				<XAxis xAxisId="candle1" dataKey="time" />
+				<XAxis xAxisId="candle2" dataKey="time" hide />
 				<YAxis type="number" domain={['auto', 'auto']} />
 				<ZAxis range={[200]} />
 				<Tooltip
@@ -59,6 +73,7 @@ const PriceChart = ({ data }: PriceChartProps): JSX.Element => {
 					}}
 				/>
 				<Line
+					xAxisId="candle1"
 					type="monotone"
 					name="Average price"
 					dataKey="average"
@@ -66,11 +81,23 @@ const PriceChart = ({ data }: PriceChartProps): JSX.Element => {
 					activeDot={{ r: 4 }}
 				/>
 				<Bar
-					name="Open/Close"
-					dataKey="candle"
+					xAxisId="candle1"
+					name="Open / Close"
+					dataKey="openClose"
 					fill={color.light}
 					style={{ opacity: 0.15 }}
-				/>
+				>
+					<ErrorBar
+						dataKey="greenCandle"
+						stroke={color.green}
+						style={{ opacity: 0.6 }}
+					/>
+					<ErrorBar
+						dataKey="redCandle"
+						stroke={color.red}
+						style={{ opacity: 0.6 }}
+					/>
+				</Bar>
 			</ComposedChart>
 		</ResponsiveContainer>
 	)

@@ -6,7 +6,7 @@ import {
 	createSellOrder,
 	getBalance,
 	getPrice,
-	get24hPriceDetails,
+	get12hPriceDetails,
 	getPriceHistory,
 	ping,
 } from './components/CryptoData'
@@ -120,18 +120,17 @@ const tick = async (): Promise<void> => {
 		displayLoadingHeader(startupData.time)
 
 		const averagePrice =
-			(priceData[1] + priceData[2] + priceData[3] + priceData[4]) / 4
+			(priceData.open + priceData.high + priceData.low + priceData.close) / 4
 		const currentPrice: CoinValuesProps = {
-			timestamp: priceData[0],
-			open: priceData[1],
-			high: priceData[2],
-			low: priceData[3],
-			close: priceData[4],
-			volume: priceData[5],
+			timestamp: priceData.timestamp,
+			open: priceData.open,
+			high: priceData.high,
+			low: priceData.low,
+			close: priceData.close,
+			volume: priceData.volume,
 			average: averagePrice,
 		}
 		const priceDateObject = new Date(currentPrice.timestamp)
-		const priceDateFormatted = priceDateObject.toLocaleString()
 		const priceTimeFormatted = priceDateObject.toLocaleTimeString([], {
 			hour: '2-digit',
 			minute: '2-digit',
@@ -158,54 +157,52 @@ const tick = async (): Promise<void> => {
 		}
 
 		if (Object.keys(currentBuys).length < config.concurrentOrders) {
-			const priceDetails = await get24hPriceDetails()
+			const priceDetails = await get12hPriceDetails()
 			try {
-				if (priceDetails.low && priceDetails.high) {
-					const maxBuyPrice =
-						priceDetails.low +
-						(priceDetails.high - priceDetails.low) * config.falsePositiveBuffer
+				const maxBuyPrice =
+					priceDetails.open +
+					(priceDetails.close - priceDetails.open) * config.falsePositiveBuffer
 
-					if (averagePrice < maxBuyPrice) {
-						const analyzeBuyResult = analyzeCoppock(coppockValues)
-						switch (analyzeBuyResult) {
-							case IndicationType.BUY: {
-								const buyOrder = await createBuyOrder(buyAmount)
-								try {
-									if (buyOrder.status === 'closed') {
-										const buyId = `${config.coin.shortName}${Date.now()}`
-										const atrValue = runATRAlgorithm(coinHistory)
-										buySellIndication.unshift({
-											time: dateFormatted,
-											status: IndicationType.BUY,
-											buyAmount: buyOrder.amount,
-											buyCost: buyOrder.cost,
-											averagePrice: averagePrice,
-										})
-										atrValues.unshift({ atr: atrValue, price: averagePrice })
-										currentBuys[buyId] = {
-											time: dateFormatted,
-											buyPrice: buyOrder.cost,
-											buyAmount: buyOrder.amount,
-											averagePrice: averagePrice,
-											atr: atrValue,
-										}
-									} else if (buyOrder.status === 'canceled') {
-										currentStatus =
-											'Buy order got canceled, waiting for new indication to buy'
+				if (averagePrice < maxBuyPrice) {
+					const analyzeBuyResult = analyzeCoppock(coppockValues)
+					switch (analyzeBuyResult) {
+						case IndicationType.BUY: {
+							const buyOrder = await createBuyOrder(buyAmount)
+							try {
+								if (buyOrder.status === 'closed') {
+									const buyId = `${config.coin.shortName}${Date.now()}`
+									const atrValue = runATRAlgorithm(coinHistory)
+									buySellIndication.unshift({
+										time: dateFormatted,
+										status: IndicationType.BUY,
+										buyAmount: buyOrder.amount,
+										buyCost: buyOrder.cost,
+										averagePrice: averagePrice,
+									})
+									atrValues.unshift({ atr: atrValue, price: averagePrice })
+									currentBuys[buyId] = {
+										time: dateFormatted,
+										buyPrice: buyOrder.cost,
+										buyAmount: buyOrder.amount,
+										averagePrice: averagePrice,
+										atr: atrValue,
 									}
-								} catch (error) {
-									logError(`Create buy order error:  ${error}`)
+								} else if (buyOrder.status === 'canceled') {
+									currentStatus =
+										'Buy order got canceled, waiting for new indication to buy'
 								}
-								break
+							} catch (error) {
+								logError(`Create buy order error:  ${error}`)
 							}
-							case IndicationType.HODL:
-								break
-							default:
-								break
+							break
 						}
-					} else {
-						currentStatus = `Market price is above the buy limit (${maxBuyPrice} ${config.stableCoin.shortName})`
+						case IndicationType.HODL:
+							break
+						default:
+							break
 					}
+				} else {
+					currentStatus = `Market price is above the buy limit (${maxBuyPrice} ${config.stableCoin.shortName})`
 				}
 			} catch (error) {
 				logError(`Get price details error:  ${error}`)
@@ -216,7 +213,11 @@ const tick = async (): Promise<void> => {
 		if (Object.keys(currentBuys).length > 0) {
 			for (const key in currentBuys) {
 				const currentBuy = currentBuys[key]
-				const analyzeSellResult = analyzeATR(key, currentBuy, averagePrice)
+				const analyzeSellResult = analyzeATR(
+					key,
+					currentBuy,
+					currentPrice.close
+				)
 				switch (analyzeSellResult) {
 					case IndicationType.SELL: {
 						const sellOrder = await createSellOrder(currentBuy.buyAmount)
@@ -252,7 +253,7 @@ const tick = async (): Promise<void> => {
 
 		displayCurrentValueHeader(
 			startupData.time,
-			priceDateFormatted,
+			dateFormatted,
 			coinHistory[0].average
 		)
 		logCurrentCoppockValue(coppockValues[0] || 0)

@@ -12,12 +12,10 @@ const globalConfig: GlobalConfig = configData
 const emptyConfig: GlobalConfig = {
 	coin: {
 		shortName: '',
-		longName: '',
 		fullName: '',
 	},
 	stableCoin: {
 		shortName: '',
-		longName: '',
 		fullName: '',
 	},
 	allocation: 0,

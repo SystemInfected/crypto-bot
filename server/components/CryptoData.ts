@@ -1,19 +1,20 @@
 import ccxt, { Balance, OHLCV, Order } from 'ccxt'
 
 import { config } from '../utils/ValidatedConfig'
+import { TickerValue } from './Interfaces'
 
-const exchangeTestClient = new ccxt.binance({
+/* const exchangeClient = new ccxt.binance({
+	apiKey: process.env.API_KEY,
+	secret: process.env.API_SECRET,
+	enableRateLimit: true,
+}) */
+
+const exchangeClient = new ccxt.binance({
 	apiKey: process.env.API_TEST_KEY,
 	secret: process.env.API_TEST_SECRET,
 	enableRateLimit: true,
 })
-exchangeTestClient.setSandboxMode(true)
-
-const exchangeClient = new ccxt.binance({
-	apiKey: process.env.API_KEY,
-	secret: process.env.API_SECRET,
-	enableRateLimit: true,
-})
+exchangeClient.setSandboxMode(true)
 
 /* export const ping = async (): Promise<string> => {
 	const ping = await exchangeClient.fetchStatus()
@@ -28,7 +29,7 @@ export const getBalance = async (): Promise<{
 	total: Balance
 	currentCoin: number
 }> => {
-	const balance = await exchangeTestClient.fetchBalance()
+	const balance = await exchangeClient.fetchBalance()
 
 	return {
 		total: balance.total,
@@ -37,7 +38,7 @@ export const getBalance = async (): Promise<{
 }
 
 export const createBuyOrder = async (buyAmount: number): Promise<Order> => {
-	const buyOrder = await exchangeTestClient.createMarketOrder(
+	const buyOrder = await exchangeClient.createMarketOrder(
 		`${config.coin.shortName}/${config.stableCoin.shortName}`,
 		'buy',
 		buyAmount
@@ -46,7 +47,7 @@ export const createBuyOrder = async (buyAmount: number): Promise<Order> => {
 }
 
 export const createSellOrder = async (sellAmount: number): Promise<Order> => {
-	const sellOrder = await exchangeTestClient.createMarketOrder(
+	const sellOrder = await exchangeClient.createMarketOrder(
 		`${config.coin.shortName}/${config.stableCoin.shortName}`,
 		'sell',
 		sellAmount
@@ -54,17 +55,26 @@ export const createSellOrder = async (sellAmount: number): Promise<Order> => {
 	return sellOrder
 }
 
-export const getPrice = async (): Promise<OHLCV> => {
-	const lookBack = Math.floor(Date.now()) - 5 * (config.tickInterval * 60000)
-	const price = await exchangeClient.fetchOHLCV(
+export const getPrice = async (): Promise<TickerValue> => {
+	const lookBack = Math.floor(Date.now()) - config.tickInterval * 60 * 1000 * 3
+	const priceData = await exchangeClient.fetchOHLCV(
 		`${config.coin.shortName}/${config.stableCoin.shortName}`,
 		`${config.tickInterval}m`,
 		lookBack
 	)
-	return price[price.length - 1]
+	const i = priceData.length - 1
+	const price: TickerValue = {
+		timestamp: priceData[i][0],
+		open: priceData[i][1],
+		high: priceData[i][2],
+		low: priceData[i][3],
+		close: priceData[i][4],
+		volume: priceData[i][5],
+	}
+	return price
 }
 
-export const get24hPriceDetails = async (): Promise<{
+export const get12hPriceDetails = async (): Promise<{
 	timestamp: number
 	open: number
 	high: number
@@ -72,10 +82,10 @@ export const get24hPriceDetails = async (): Promise<{
 	close: number
 	volume: number
 }> => {
-	const lookBack = Math.floor(Date.now()) - 2 * 3600 * 1000 * 24 // 2 days back
+	const lookBack = Math.floor(Date.now()) - 1 * 3600 * 1000 * 24 // 1 days back
 	const price = await exchangeClient.fetchOHLCV(
 		`${config.coin.shortName}/${config.stableCoin.shortName}`,
-		'1d',
+		'12h',
 		lookBack
 	)
 	return {

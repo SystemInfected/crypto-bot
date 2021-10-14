@@ -93,16 +93,20 @@ export const analyzeATR = (
 		averagePrice: number
 		atr: number
 	},
-	averagePrice: number
+	closePrice: number
 ): IndicationType => {
 	const atrDelay = ATRDelayCheck.filter((atr) => atr === buyId)
 	// Analize if previous ATR is reach, if so SELL
 	if (
-		averagePrice >=
-		currentBuy.averagePrice + currentBuy.atr * config.ATRmultiplier
+		closePrice >=
+		currentBuy.buyPrice / currentBuy.buyAmount +
+			currentBuy.atr * config.ATRmultiplier
 	) {
 		return IndicationType.SELL
-	} else if (averagePrice >= currentBuy.averagePrice + currentBuy.atr) {
+	} else if (
+		closePrice >=
+		currentBuy.buyPrice / currentBuy.buyAmount + currentBuy.atr
+	) {
 		if (atrDelay.length === config.sellBuffer) {
 			return IndicationType.SELL
 		} else {

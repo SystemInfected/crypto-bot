@@ -1,12 +1,10 @@
 {
 	"coin": {
-		"shortName": "BNB",
-		"longName": "Binancecoin",
-		"fullName": "Binance Coin"
+		"shortName": "BTC",
+		"fullName": "Bitcoin"
 	},
 	"stableCoin": {
 		"shortName": "USDT",
-		"longName": "Tether",
 		"fullName": "Tether"
 	},
 	"allocation": 0.1,

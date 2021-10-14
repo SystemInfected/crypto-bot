@@ -8,14 +8,11 @@
 				"shortName": {
 					"type": "string"
 				},
-				"longName": {
-					"type": "string"
-				},
 				"fullName": {
 					"type": "string"
 				}
 			},
-			"required": ["shortName", "longName", "fullName"]
+			"required": ["shortName", "fullName"]
 		},
 		"stableCoin": {
 			"type": "object",
@@ -24,14 +21,11 @@
 				"shortName": {
 					"type": "string"
 				},
-				"longName": {
-					"type": "string"
-				},
 				"fullName": {
 					"type": "string"
 				}
 			},
-			"required": ["shortName", "longName", "fullName"]
+			"required": ["shortName", "fullName"]
 		},
 		"allocation": {
 			"type": "number",
@@ -71,7 +65,7 @@
 		},
 		"falsePositiveBuffer": {
 			"type": "number",
-			"description": "Multiplier of 24h price change to avoid buying at false positive (too close to daily high)"
+			"description": "Multiplier of 12h price change to avoid buying at false positive (too close to 12 closing price)"
 		},
 		"sellBuffer": {
 			"type": "integer",
