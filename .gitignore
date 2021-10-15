@@ -25,6 +25,7 @@ coverage
 # build dir
 build/
 dist/
+storage/
 
 # nyc test coverage
 .nyc_output

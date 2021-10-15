@@ -112,6 +112,7 @@ const PriceChart = ({ data }: PriceChartProps): JSX.Element => {
 					type="monotone"
 					name="Average price"
 					dataKey="average"
+					dot={false}
 					stroke={`${color.light}`}
 					activeDot={{ r: 4 }}
 				/>

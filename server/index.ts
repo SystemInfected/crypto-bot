@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
+import { LocalStorage } from 'node-localstorage'
 import {
 	createBuyOrder,
 	createSellOrder,
@@ -37,6 +38,8 @@ import {
 	runCoppockAlgorithm,
 } from './components/AlgorithmCalc'
 require('dotenv').config()
+
+const localStorage = new LocalStorage('./storage')
 interface StartupDataProps {
 	time: string
 }
@@ -54,19 +57,25 @@ const coppockChartData: Array<{
 })
 const atrValues: { atr: number; price: number }[] = []
 
-const buySellIndication: {
+const storedBuySellHistory = JSON.parse(
+	localStorage.getItem('buySellHistory') || '[]'
+)
+const buySellHistory: {
 	time: string
 	status: IndicationType
 	buyAmount: number
 	buyCost: number
 	averagePrice: number
 	result?: number
-}[] = []
+}[] = storedBuySellHistory
 
 let currentStatus: string
 let currentSellStatus: string
 
-const currentBuys: CurrentBuy = {}
+const storedCurrentBuys = JSON.parse(
+	localStorage.getItem('currentBuys') || '{}'
+)
+const currentBuys: CurrentBuy = storedCurrentBuys
 
 // Express server for frontend
 const app = express()
@@ -173,7 +182,7 @@ const tick = async (): Promise<void> => {
 								if (buyOrder.status === 'closed') {
 									const buyId = `${config.coin.shortName}${Date.now()}`
 									const atrValue = runATRAlgorithm(coinHistory)
-									buySellIndication.unshift({
+									buySellHistory.unshift({
 										time: dateFormatted,
 										status: IndicationType.BUY,
 										buyAmount: buyOrder.amount,
@@ -188,6 +197,14 @@ const tick = async (): Promise<void> => {
 										averagePrice: averagePrice,
 										atr: atrValue,
 									}
+									localStorage.setItem(
+										'currentBuys',
+										JSON.stringify(currentBuys)
+									)
+									localStorage.setItem(
+										'buySellHistory',
+										JSON.stringify(buySellHistory)
+									)
 								} else if (buyOrder.status === 'canceled') {
 									currentStatus =
 										'Buy order got canceled, waiting for new indication to buy'
@@ -212,7 +229,7 @@ const tick = async (): Promise<void> => {
 			currentStatus = `Concurrent orders limit(${config.concurrentOrders}) is reached`
 		}
 		if (Object.keys(currentBuys).length > 0) {
-			currentSellStatus = "Evaluating if it's time to sell"
+			currentSellStatus = 'Waiting for indication to sell'
 			for (const key in currentBuys) {
 				const currentBuy = currentBuys[key]
 				const analyzeSellResult = analyzeATR(
@@ -225,7 +242,7 @@ const tick = async (): Promise<void> => {
 						const sellOrder = await createSellOrder(currentBuy.buyAmount)
 						try {
 							if (sellOrder.status === 'closed') {
-								buySellIndication.unshift({
+								buySellHistory.unshift({
 									time: dateFormatted,
 									status: IndicationType.SELL,
 									buyAmount: sellOrder.amount,
@@ -235,6 +252,11 @@ const tick = async (): Promise<void> => {
 								})
 								currentSellStatus = ''
 								delete currentBuys[key]
+								localStorage.setItem('currentBuys', JSON.stringify(currentBuys))
+								localStorage.setItem(
+									'buySellHistory',
+									JSON.stringify(buySellHistory)
+								)
 							} else if (sellOrder.status === 'canceled') {
 								currentSellStatus =
 									'Sell order got canceled, waiting for new indication to sell'
@@ -259,7 +281,7 @@ const tick = async (): Promise<void> => {
 		logStatus(currentStatus, currentSellStatus)
 		logBalance(newBalance.total)
 		logCurrentBuys(currentBuys)
-		logBuySellHistory(buySellIndication)
+		logBuySellHistory(buySellHistory)
 	} catch (error) {
 		logError(`Get price error:  ${error}`)
 	}

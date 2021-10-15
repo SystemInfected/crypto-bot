@@ -129,7 +129,7 @@ export const logBuySellHistory = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('BUY ') +
 					chalk.green(
-						`${config.coin.shortName} ${buySellIndication.buyAmount} | Average price: ${buySellIndication.averagePrice} ${config.stableCoin.shortName} (Cost: ${buySellIndication.buyCost} ${config.stableCoin.shortName})`
+						`${buySellIndication.buyAmount} ${config.coin.shortName} | Average price: ${buySellIndication.averagePrice} ${config.stableCoin.shortName} (Cost: ${buySellIndication.buyCost} ${config.stableCoin.shortName})`
 					)
 			)
 		} else if (buySellIndication.status === IndicationType.SELL) {
@@ -137,7 +137,7 @@ export const logBuySellHistory = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('SELL ') +
 					chalk.green(
-						`${config.coin.shortName} ${buySellIndication.buyAmount} | Price: ${buySellIndication.buyCost} ${config.stableCoin.shortName} (Gain: ${buySellIndication.result} ${config.stableCoin.shortName})`
+						`${buySellIndication.buyAmount} ${config.coin.shortName} | Price: ${buySellIndication.buyCost} ${config.stableCoin.shortName} (Gain: ${buySellIndication.result} ${config.stableCoin.shortName})`
 					)
 			)
 		}

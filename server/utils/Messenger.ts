@@ -22,6 +22,6 @@ export const displayCurrentValueHeader = (
 	logHeader(startTime)
 	logCoinValue(dateFormatted, coinValue.average)
 	logDetails(
-		`Open: ${coinValue.open} High: ${coinValue.high} Low: ${coinValue.low} Close: ${coinValue.close}`
+		`Open: ${coinValue.open} | High: ${coinValue.high} | Low: ${coinValue.low} | Close: ${coinValue.close}`
 	)
 }
