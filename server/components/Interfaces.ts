@@ -52,6 +52,18 @@ export interface CurrentBuy {
 	}
 }
 
+export interface OpenOrder {
+	[key: string]: {
+		time: string
+		orderId: string
+		type: IndicationType
+		buyPrice: number
+		buyAmount: number
+		averagePrice: number
+		remaining: number
+	}
+}
+
 export interface TickerValue {
 	timestamp: number
 	open: number

@@ -26,6 +26,7 @@ coverage
 build/
 dist/
 storage/
+transactions/
 
 # nyc test coverage
 .nyc_output

@@ -55,6 +55,14 @@ export const createSellOrder = async (sellAmount: number): Promise<Order> => {
 	return sellOrder
 }
 
+export const getOrderStatus = async (orderId: string): Promise<Order> => {
+	const orderStatus = await exchangeClient.fetchOrder(
+		orderId,
+		`${config.coin.shortName}/${config.stableCoin.shortName}`
+	)
+	return orderStatus
+}
+
 export const getPrice = async (): Promise<TickerValue> => {
 	const lookBack = Math.floor(Date.now()) - config.tickInterval * 60 * 1000 * 3
 	const priceData = await exchangeClient.fetchOHLCV(

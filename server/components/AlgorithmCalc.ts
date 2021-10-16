@@ -100,12 +100,13 @@ export const analyzeATR = (
 	if (
 		closePrice >=
 		currentBuy.buyPrice / currentBuy.buyAmount +
-			currentBuy.atr * config.ATRmultiplier
+			currentBuy.atr * currentBuy.buyAmount * config.ATRmultiplier
 	) {
 		return IndicationType.SELL
 	} else if (
 		closePrice >=
-		currentBuy.buyPrice / currentBuy.buyAmount + currentBuy.atr
+		currentBuy.buyPrice / currentBuy.buyAmount +
+			currentBuy.atr * currentBuy.buyAmount
 	) {
 		if (atrDelay.length === config.sellBuffer) {
 			return IndicationType.SELL

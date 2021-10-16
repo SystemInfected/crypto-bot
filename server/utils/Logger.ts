@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import chalk from 'chalk'
 import { config } from './ValidatedConfig'
-import { CurrentBuy, IndicationType } from '../components/Interfaces'
+import { CurrentBuy, IndicationType, OpenOrder } from '../components/Interfaces'
 import { Balance } from 'ccxt'
 require('dotenv').config()
 
@@ -89,7 +89,7 @@ export const logBalance = (balance: Balance): void => {
 }
 
 export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
-	console.log(chalk.green('\nCurrent active orders:'))
+	console.log(chalk.green('\nCurrent active buy orders:'))
 	if (Object.keys(currentBuys).length === 0) {
 		console.log(chalk.white('No active orders'))
 	}
@@ -106,6 +106,28 @@ export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
 					}) | ${currentBuy.time}`
 				)
 		)
+	}
+}
+
+export const logOpenOrders = (openOrders: OpenOrder): void => {
+	if (Object.keys(openOrders).length > 0) {
+		console.log(chalk.green('\nCurrent open orders:'))
+		for (const key in openOrders) {
+			const openOrder = openOrders[key]
+			let type = 'SELLING'
+			if (openOrder.type === IndicationType.BUY) {
+				type = 'BUYING'
+			}
+			console.log(
+				chalk.green.bold(`${key}: ${type} `) +
+					chalk.green(
+						`${config.coin.shortName} ${openOrder.buyAmount} (Cost: ${openOrder.buyPrice} ${config.stableCoin.shortName})`
+					) +
+					chalk.white(
+						` Remaining:${openOrder.remaining} ${config.coin.shortName} | ${openOrder.time}`
+					)
+			)
+		}
 	}
 }
 

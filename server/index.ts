@@ -10,6 +10,7 @@ import {
 	get12hPriceDetails,
 	getPriceHistory,
 	ping,
+	getOrderStatus,
 } from './components/CryptoData'
 import {
 	displayCurrentValueHeader,
@@ -24,12 +25,14 @@ import {
 	logCurrentCoppockValue,
 	logError,
 	logInfo,
+	logOpenOrders,
 	logStatus,
 } from './utils/Logger'
 import {
 	CoinValuesProps,
 	CurrentBuy,
 	IndicationType,
+	OpenOrder,
 } from './components/Interfaces'
 import {
 	analyzeATR,
@@ -76,6 +79,9 @@ const storedCurrentBuys = JSON.parse(
 	localStorage.getItem('currentBuys') || '{}'
 )
 const currentBuys: CurrentBuy = storedCurrentBuys
+
+const storedOpenOrders = JSON.parse(localStorage.getItem('openOrders') || '{}')
+const openOrders: OpenOrder = storedOpenOrders
 
 // Express server for frontend
 const app = express()
@@ -166,6 +172,133 @@ const tick = async (): Promise<void> => {
 			coppockChartData.push({ time: timeFormatted, coppockValue })
 		}
 
+		if (Object.keys(openOrders).length > 0) {
+			for (const key in openOrders) {
+				const openOrder = openOrders[key]
+				const orderStatus = await getOrderStatus(openOrder.orderId)
+
+				if (openOrder.type === IndicationType.BUY) {
+					if (
+						orderStatus.status === 'closed' ||
+						orderStatus.status === 'canceled'
+					) {
+						const buyId = `${config.coin.shortName}${Date.now()}`
+						const atrValue = runATRAlgorithm(coinHistory)
+						buySellHistory.unshift({
+							time: dateFormatted,
+							status: IndicationType.BUY,
+							buyAmount: orderStatus.filled,
+							buyCost: orderStatus.cost,
+							averagePrice: orderStatus.average || openOrder.averagePrice,
+						})
+						atrValues.unshift({
+							atr: atrValue,
+							price: orderStatus.average || openOrder.averagePrice,
+						})
+						currentBuys[buyId] = {
+							time: dateFormatted,
+							buyPrice: orderStatus.cost,
+							buyAmount: orderStatus.filled,
+							averagePrice: orderStatus.average || openOrder.averagePrice,
+							atr: atrValue,
+						}
+						localStorage.setItem('currentBuys', JSON.stringify(currentBuys))
+						localStorage.setItem(
+							'buySellHistory',
+							JSON.stringify(buySellHistory)
+						)
+						delete openOrders[key]
+						localStorage.setItem('openOrders', JSON.stringify(openOrders))
+					} else {
+						delete openOrders[key]
+						const buyId = key
+						openOrders[buyId] = {
+							time: dateFormatted,
+							orderId: orderStatus.id,
+							type: IndicationType.BUY,
+							buyPrice: orderStatus.cost,
+							buyAmount: orderStatus.amount,
+							averagePrice: orderStatus.average || openOrder.averagePrice,
+							remaining: orderStatus.remaining,
+						}
+						localStorage.setItem('openOrders', JSON.stringify(openOrders))
+					}
+				} else {
+					if (orderStatus.status === 'closed') {
+						buySellHistory.unshift({
+							time: dateFormatted,
+							status: IndicationType.SELL,
+							buyAmount: orderStatus.filled,
+							buyCost: orderStatus.cost,
+							averagePrice: orderStatus.average || openOrder.averagePrice,
+							result: orderStatus.cost - openOrder.buyPrice,
+						})
+						delete openOrders[key]
+						localStorage.setItem('openOrders', JSON.stringify(openOrders))
+						localStorage.setItem(
+							'buySellHistory',
+							JSON.stringify(buySellHistory)
+						)
+					} else if (orderStatus.status === 'canceled') {
+						buySellHistory.unshift({
+							time: dateFormatted,
+							status: IndicationType.SELL,
+							buyAmount: orderStatus.filled,
+							buyCost: orderStatus.cost,
+							averagePrice: orderStatus.average || openOrder.averagePrice,
+							result:
+								orderStatus.cost -
+								(openOrder.buyPrice / orderStatus.amount) * orderStatus.filled,
+						})
+						const buyId = `${config.coin.shortName}${Date.now()}-REMAINING`
+						const atrValue = runATRAlgorithm(coinHistory)
+						buySellHistory.unshift({
+							time: dateFormatted,
+							status: IndicationType.BUY,
+							buyAmount: orderStatus.remaining,
+							buyCost:
+								openOrder.buyPrice -
+								(openOrder.buyPrice / orderStatus.amount) * orderStatus.filled,
+							averagePrice: orderStatus.average || openOrder.averagePrice,
+						})
+						atrValues.unshift({
+							atr: atrValue,
+							price: orderStatus.average || openOrder.averagePrice,
+						})
+						currentBuys[buyId] = {
+							time: dateFormatted,
+							buyPrice:
+								openOrder.buyPrice -
+								(openOrder.buyPrice / orderStatus.amount) * orderStatus.filled,
+							buyAmount: orderStatus.remaining,
+							averagePrice: orderStatus.average || openOrder.averagePrice,
+							atr: atrValue,
+						}
+						delete openOrders[key]
+						localStorage.setItem('openOrders', JSON.stringify(openOrders))
+						localStorage.setItem(
+							'buySellHistory',
+							JSON.stringify(buySellHistory)
+						)
+						localStorage.setItem('currentBuys', JSON.stringify(currentBuys))
+					} else {
+						delete openOrders[key]
+						const buyId = key
+						openOrders[buyId] = {
+							time: dateFormatted,
+							orderId: orderStatus.id,
+							type: IndicationType.SELL,
+							buyPrice: openOrder.buyPrice,
+							buyAmount: orderStatus.amount,
+							averagePrice: orderStatus.average || openOrder.averagePrice,
+							remaining: orderStatus.remaining,
+						}
+						localStorage.setItem('openOrders', JSON.stringify(openOrders))
+					}
+				}
+			}
+		}
+
 		if (Object.keys(currentBuys).length < config.concurrentOrders) {
 			const priceDetails = await get12hPriceDetails()
 			try {
@@ -205,7 +338,19 @@ const tick = async (): Promise<void> => {
 										'buySellHistory',
 										JSON.stringify(buySellHistory)
 									)
-								} else if (buyOrder.status === 'canceled') {
+								} else if (buyOrder.status === 'open') {
+									const buyId = `${config.coin.shortName}${Date.now()}-PARTIAL`
+									openOrders[buyId] = {
+										time: dateFormatted,
+										orderId: buyOrder.id,
+										type: IndicationType.BUY,
+										buyPrice: buyOrder.cost,
+										buyAmount: buyOrder.amount,
+										averagePrice: averagePrice,
+										remaining: buyOrder.remaining,
+									}
+									localStorage.setItem('openOrders', JSON.stringify(openOrders))
+								} else {
 									currentStatus =
 										'Buy order got canceled, waiting for new indication to buy'
 								}
@@ -228,6 +373,7 @@ const tick = async (): Promise<void> => {
 		} else {
 			currentStatus = `Concurrent orders limit(${config.concurrentOrders}) is reached`
 		}
+
 		if (Object.keys(currentBuys).length > 0) {
 			currentSellStatus = 'Waiting for indication to sell'
 			for (const key in currentBuys) {
@@ -257,7 +403,21 @@ const tick = async (): Promise<void> => {
 									'buySellHistory',
 									JSON.stringify(buySellHistory)
 								)
-							} else if (sellOrder.status === 'canceled') {
+							} else if (sellOrder.status === 'open') {
+								const buyId = `${config.coin.shortName}${Date.now()}-PARTIAL`
+								openOrders[buyId] = {
+									time: dateFormatted,
+									orderId: sellOrder.id,
+									type: IndicationType.SELL,
+									buyPrice: currentBuy.buyPrice,
+									buyAmount: sellOrder.amount,
+									averagePrice: averagePrice,
+									remaining: sellOrder.remaining,
+								}
+								currentSellStatus = ''
+								delete currentBuys[key]
+								localStorage.setItem('openOrders', JSON.stringify(openOrders))
+							} else {
 								currentSellStatus =
 									'Sell order got canceled, waiting for new indication to sell'
 							}
@@ -281,6 +441,7 @@ const tick = async (): Promise<void> => {
 		logStatus(currentStatus, currentSellStatus)
 		logBalance(newBalance.total)
 		logCurrentBuys(currentBuys)
+		logOpenOrders(openOrders)
 		logBuySellHistory(buySellHistory)
 	} catch (error) {
 		logError(`Get price error:  ${error}`)
