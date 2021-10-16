@@ -33,6 +33,7 @@ import {
 	CurrentBuy,
 	IndicationType,
 	OpenOrder,
+	StoredTransactionsProps,
 } from './components/Interfaces'
 import {
 	analyzeATR,
@@ -43,6 +44,7 @@ import {
 require('dotenv').config()
 
 const localStorage = new LocalStorage('./storage')
+const transactionStorage = new LocalStorage('./transactions')
 interface StartupDataProps {
 	time: string
 }
@@ -130,6 +132,9 @@ const initialLoad = async (): Promise<void> => {
 }
 
 const tick = async (): Promise<void> => {
+	const storedTransactions: Array<StoredTransactionsProps> = JSON.parse(
+		transactionStorage.getItem(startupData.time) || '[]'
+	)
 	currentStatus = 'Waiting for indication to buy'
 	const priceData = await getPrice()
 	try {
@@ -209,6 +214,21 @@ const tick = async (): Promise<void> => {
 						)
 						delete openOrders[key]
 						localStorage.setItem('openOrders', JSON.stringify(openOrders))
+
+						storedTransactions.unshift({
+							time: orderStatus.timestamp,
+							type: 'BOUGHT',
+							coinPair: orderStatus.symbol,
+							price: orderStatus.price,
+							amount: orderStatus.filled,
+							cost: orderStatus.cost,
+							fee: orderStatus.fee.cost,
+							feeCurrency: orderStatus.fee.currency,
+						})
+						transactionStorage.setItem(
+							startupData.time,
+							JSON.stringify(storedTransactions)
+						)
 					} else {
 						delete openOrders[key]
 						const buyId = key
@@ -238,6 +258,22 @@ const tick = async (): Promise<void> => {
 						localStorage.setItem(
 							'buySellHistory',
 							JSON.stringify(buySellHistory)
+						)
+
+						storedTransactions.unshift({
+							time: orderStatus.timestamp,
+							type: 'SOLD',
+							coinPair: orderStatus.symbol,
+							price: orderStatus.price,
+							amount: orderStatus.filled,
+							cost: orderStatus.cost,
+							fee: orderStatus.fee.cost,
+							feeCurrency: orderStatus.fee.currency,
+							result: orderStatus.cost - openOrder.buyPrice,
+						})
+						transactionStorage.setItem(
+							startupData.time,
+							JSON.stringify(storedTransactions)
 						)
 					} else if (orderStatus.status === 'canceled') {
 						buySellHistory.unshift({
@@ -281,6 +317,24 @@ const tick = async (): Promise<void> => {
 							JSON.stringify(buySellHistory)
 						)
 						localStorage.setItem('currentBuys', JSON.stringify(currentBuys))
+
+						storedTransactions.unshift({
+							time: orderStatus.timestamp,
+							type: 'SOLD',
+							coinPair: orderStatus.symbol,
+							price: orderStatus.price,
+							amount: orderStatus.filled,
+							cost: orderStatus.cost,
+							fee: orderStatus.fee.cost,
+							feeCurrency: orderStatus.fee.currency,
+							result:
+								orderStatus.cost -
+								(openOrder.buyPrice / orderStatus.amount) * orderStatus.filled,
+						})
+						transactionStorage.setItem(
+							startupData.time,
+							JSON.stringify(storedTransactions)
+						)
 					} else {
 						delete openOrders[key]
 						const buyId = key
@@ -337,6 +391,21 @@ const tick = async (): Promise<void> => {
 									localStorage.setItem(
 										'buySellHistory',
 										JSON.stringify(buySellHistory)
+									)
+
+									storedTransactions.unshift({
+										time: buyOrder.timestamp,
+										type: 'BOUGHT',
+										coinPair: buyOrder.symbol,
+										price: buyOrder.price,
+										amount: buyOrder.filled,
+										cost: buyOrder.cost,
+										fee: buyOrder.fee.cost,
+										feeCurrency: buyOrder.fee.currency,
+									})
+									transactionStorage.setItem(
+										startupData.time,
+										JSON.stringify(storedTransactions)
 									)
 								} else if (buyOrder.status === 'open') {
 									const buyId = `${config.coin.shortName}${Date.now()}-PARTIAL`
@@ -402,6 +471,22 @@ const tick = async (): Promise<void> => {
 								localStorage.setItem(
 									'buySellHistory',
 									JSON.stringify(buySellHistory)
+								)
+
+								storedTransactions.unshift({
+									time: sellOrder.timestamp,
+									type: 'SOLD',
+									coinPair: sellOrder.symbol,
+									price: sellOrder.price,
+									amount: sellOrder.filled,
+									cost: sellOrder.cost,
+									fee: sellOrder.fee.cost,
+									feeCurrency: sellOrder.fee.currency,
+									result: sellOrder.cost - currentBuy.buyPrice,
+								})
+								transactionStorage.setItem(
+									startupData.time,
+									JSON.stringify(storedTransactions)
 								)
 							} else if (sellOrder.status === 'open') {
 								const buyId = `${config.coin.shortName}${Date.now()}-PARTIAL`

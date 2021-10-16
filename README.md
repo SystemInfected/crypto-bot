@@ -17,5 +17,5 @@ _ATT: This is built mostly for fun. I am no trading expert, use this at your own
 - [x] Connect to Graph frontend
 - [x] Allow multiple concurrent orders
 - [x] Connect to exchange
-- [ ] Log BUY/SELL to file (for tax reports)
+- [x] Log BUY/SELL to file (for tax reports)
 - [ ] Earn money

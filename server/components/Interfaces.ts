@@ -82,3 +82,15 @@ export interface CoinValuesProps {
 	volume: number
 	average: number
 }
+
+export interface StoredTransactionsProps {
+	time: number
+	type: string
+	coinPair: string
+	price: number
+	amount: number
+	cost: number
+	fee: number
+	feeCurrency: string
+	result?: number
+}
