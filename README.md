@@ -19,7 +19,7 @@ API_SECRET=FGHIJ
 API_PASSWORD=KLMNO
 ```
 
-2. Configure exhchange connection in _/server/config/config.ts_  
+2. Configure exchange connection in _/server/config/config.ts_  
 See CCXT documentation for more details on exchange structure
 ```ts
 const exchangeClient = new ccxt.yourselectedexchange({
