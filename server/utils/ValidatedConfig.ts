@@ -26,10 +26,11 @@ const emptyConfig: GlobalConfig = {
 	longROC: 0,
 	shortROC: 0,
 	WMA: 0,
+	atrWMA: 0,
 	buyBuffer: 0,
 	falsePositiveBuffer: 0,
 	sellBuffer: 0,
-	ATRmultiplier: 0,
+	atrMultiplier: 0,
 }
 
 const validateConfig = (): GlobalConfig => {

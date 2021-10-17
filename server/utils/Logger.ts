@@ -101,7 +101,7 @@ export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
 					`${config.coin.shortName} ${currentBuy.buyAmount} (Cost: ${currentBuy.buyPrice} ${config.stableCoin.shortName})`
 				) +
 				chalk.white(
-					` ATR:${currentBuy.atr} (x${config.ATRmultiplier}) | ${currentBuy.time}`
+					` ATR:${currentBuy.atr} (x${config.atrMultiplier}) | ${currentBuy.time}`
 				)
 		)
 	}

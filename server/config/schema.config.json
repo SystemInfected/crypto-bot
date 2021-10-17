@@ -59,6 +59,10 @@
 			"type": "integer",
 			"description": "Usually WMA 10"
 		},
+		"atrWMA": {
+			"type": "integer",
+			"description": "Amount of values included in ATR calculation"
+		},
 		"buyBuffer": {
 			"type": "integer",
 			"description": "Finetuning of when to buy"
@@ -71,7 +75,7 @@
 			"type": "integer",
 			"description": "Finetuning of when to sell"
 		},
-		"ATRmultiplier": {
+		"atrMultiplier": {
 			"type": "number",
 			"description": "Multiplier of ATR to set sell point"
 		}
@@ -89,6 +93,6 @@
 		"WMA",
 		"buyBuffer",
 		"sellBuffer",
-		"ATRmultiplier"
+		"atrMultiplier"
 	]
 }

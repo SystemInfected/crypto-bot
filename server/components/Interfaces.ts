@@ -26,6 +26,8 @@ export interface GlobalConfig {
 	shortROC: number
 	/** Usually WMA 10 */
 	WMA: number
+	/** Amount of values included in ATR calculation */
+	atrWMA: number
 	/** Finetuning of when to buy */
 	buyBuffer: number
 	/** Multiplier of 12h price change to avoid buying at false positive (too close to 12 closing price) */
@@ -33,7 +35,7 @@ export interface GlobalConfig {
 	/** Finetuning of when to sell */
 	sellBuffer: number
 	/** Multiplier of ATR to set sell point */
-	ATRmultiplier: number
+	atrMultiplier: number
 }
 
 export enum IndicationType {

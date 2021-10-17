@@ -41,14 +41,14 @@ export const runCoppockAlgorithm = (
 
 export const runATRAlgorithm = (coinHistory: CoinValuesProps[]): number => {
 	const TRValues: number[] = []
-	for (let i = 1; i < config.WMA + 1; i++) {
+	for (let i = 1; i < config.atrWMA + 1; i++) {
 		const TR: number[] = []
 		TR.push(coinHistory[i].high - coinHistory[i].low)
 		TR.push(coinHistory[i + 1].close - coinHistory[i].low)
 		TR.push(coinHistory[i].high - coinHistory[i + 1].close)
 		TRValues.push(Math.max(...TR))
 	}
-	const ATR = getWMA(TRValues, config.WMA)
+	const ATR = getWMA(TRValues, config.atrWMA)
 	return ATR
 }
 
@@ -100,7 +100,7 @@ export const analyzeATR = (
 	if (
 		closePrice >=
 		currentBuy.buyPrice / currentBuy.buyAmount +
-			currentBuy.atr * config.ATRmultiplier
+			currentBuy.atr * config.atrMultiplier
 	) {
 		return IndicationType.SELL
 	} else if (
