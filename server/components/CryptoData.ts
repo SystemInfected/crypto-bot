@@ -3,15 +3,6 @@ import { config } from '../utils/ValidatedConfig'
 import { TickerValue } from './Interfaces'
 import exchangeClient from '../config/config'
 
-/* export const ping = async (): Promise<string> => {
-	const ping = await exchangeClient.fetchStatus()
-	return ping.status
-} */
-export const ping = (): string => {
-	const ping = 'ok'
-	return ping
-}
-
 export const getBalance = async (): Promise<{
 	total: Balance
 	currentCoin: number

@@ -1,11 +1,10 @@
 import ccxt from 'ccxt'
 
 const exchangeClient = new ccxt.binance({
-	apiKey: process.env.API_TEST_KEY,
-	secret: process.env.API_TEST_SECRET,
-	// password: process.env.API_TEST_PASSWORD,
+	apiKey: process.env.API_KEY,
+	secret: process.env.API_SECRET,
 	enableRateLimit: true,
 })
-exchangeClient.setSandboxMode(true)
+exchangeClient.setSandboxMode(true) // For testing in sandbox environment
 
 export default exchangeClient

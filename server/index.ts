@@ -9,7 +9,6 @@ import {
 	getPrice,
 	get12hPriceDetails,
 	getPriceHistory,
-	ping,
 	getOrderStatus,
 } from './components/CryptoData'
 import {
@@ -552,22 +551,7 @@ const run = (): void => {
 
 clearLog()
 logInfo('Connecting to crypto server...')
-
-/* ping()
-	.then((data) => {
-		if (data === 'ok') {
-			logInfo(`Exchange status: ${data}`)
-			run()
-		} else {
-			logError(`Exchange status: ${data}`)
-		}
-	})
-	.catch((error) => logError(`Connect to exchange error:  ${error}`)) */
-const pingStatus = ping()
-if (pingStatus === 'ok') {
-	logInfo(`Exchange status: ${pingStatus}`)
-	run()
-}
+run()
 
 app.get('/chart_data', async (req, res) => {
 	res.send({
