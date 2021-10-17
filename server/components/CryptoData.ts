@@ -1,20 +1,7 @@
-import ccxt, { Balance, OHLCV, Order } from 'ccxt'
-
+import { Balance, OHLCV, Order } from 'ccxt'
 import { config } from '../utils/ValidatedConfig'
 import { TickerValue } from './Interfaces'
-
-/* const exchangeClient = new ccxt.binance({
-	apiKey: process.env.API_KEY,
-	secret: process.env.API_SECRET,
-	enableRateLimit: true,
-}) */
-
-const exchangeClient = new ccxt.binance({
-	apiKey: process.env.API_TEST_KEY,
-	secret: process.env.API_TEST_SECRET,
-	enableRateLimit: true,
-})
-exchangeClient.setSandboxMode(true)
+import exchangeClient from '../config/config'
 
 /* export const ping = async (): Promise<string> => {
 	const ping = await exchangeClient.fetchStatus()

@@ -25,8 +25,13 @@ coverage
 # build dir
 build/
 dist/
+
+# local storing folders
 storage/
 transactions/
+
+# mac file
+.DS_Store
 
 # nyc test coverage
 .nyc_output

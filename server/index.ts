@@ -47,9 +47,10 @@ const localStorage = new LocalStorage('./storage')
 const transactionStorage = new LocalStorage('./transactions')
 interface StartupDataProps {
 	time: string
+	timestamp: number
 }
 
-const startupData: StartupDataProps = { time: '' }
+const startupData: StartupDataProps = { time: '', timestamp: 0 }
 const coinHistory: Array<CoinValuesProps> = []
 const priceChartData: Array<{ time: string; price: CoinValuesProps }> = []
 const coppockValues: number[] = []
@@ -133,7 +134,7 @@ const initialLoad = async (): Promise<void> => {
 
 const tick = async (): Promise<void> => {
 	const storedTransactions: Array<StoredTransactionsProps> = JSON.parse(
-		transactionStorage.getItem(startupData.time) || '[]'
+		transactionStorage.getItem(startupData.timestamp.toString()) || '[]'
 	)
 	currentStatus = 'Waiting for indication to buy'
 	const priceData = await getPrice()
@@ -226,7 +227,7 @@ const tick = async (): Promise<void> => {
 							feeCurrency: orderStatus.fee.currency,
 						})
 						transactionStorage.setItem(
-							startupData.time,
+							startupData.timestamp.toString(),
 							JSON.stringify(storedTransactions)
 						)
 					} else {
@@ -272,7 +273,7 @@ const tick = async (): Promise<void> => {
 							result: orderStatus.cost - openOrder.buyPrice,
 						})
 						transactionStorage.setItem(
-							startupData.time,
+							startupData.timestamp.toString(),
 							JSON.stringify(storedTransactions)
 						)
 					} else if (orderStatus.status === 'canceled') {
@@ -332,7 +333,7 @@ const tick = async (): Promise<void> => {
 								(openOrder.buyPrice / orderStatus.amount) * orderStatus.filled,
 						})
 						transactionStorage.setItem(
-							startupData.time,
+							startupData.timestamp.toString(),
 							JSON.stringify(storedTransactions)
 						)
 					} else {
@@ -404,7 +405,7 @@ const tick = async (): Promise<void> => {
 										feeCurrency: buyOrder.fee.currency,
 									})
 									transactionStorage.setItem(
-										startupData.time,
+										startupData.timestamp.toString(),
 										JSON.stringify(storedTransactions)
 									)
 								} else if (buyOrder.status === 'open') {
@@ -485,7 +486,7 @@ const tick = async (): Promise<void> => {
 									result: sellOrder.cost - currentBuy.buyPrice,
 								})
 								transactionStorage.setItem(
-									startupData.time,
+									startupData.timestamp.toString(),
 									JSON.stringify(storedTransactions)
 								)
 							} else if (sellOrder.status === 'open') {
@@ -537,6 +538,7 @@ const run = (): void => {
 	const dateObject = new Date()
 	const dateFormatted = dateObject.toLocaleString()
 	startupData.time = dateFormatted
+	startupData.timestamp = dateObject.getTime()
 
 	initialLoad()
 		.then(() => {

@@ -1,7 +1,7 @@
 {
 	"coin": {
-		"shortName": "BTC",
-		"fullName": "Bitcoin"
+		"shortName": "BNB",
+		"fullName": "Binance Coin"
 	},
 	"stableCoin": {
 		"shortName": "USDT",

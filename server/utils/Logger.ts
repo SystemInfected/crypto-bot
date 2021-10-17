@@ -89,7 +89,7 @@ export const logBalance = (balance: Balance): void => {
 }
 
 export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
-	console.log(chalk.green('\nCurrent active buy orders:'))
+	console.log(chalk.green('\nCurrent active orders waiting to sell:'))
 	if (Object.keys(currentBuys).length === 0) {
 		console.log(chalk.white('No active orders'))
 	}
@@ -101,9 +101,7 @@ export const logCurrentBuys = (currentBuys: CurrentBuy): void => {
 					`${config.coin.shortName} ${currentBuy.buyAmount} (Cost: ${currentBuy.buyPrice} ${config.stableCoin.shortName})`
 				) +
 				chalk.white(
-					` ATR:${currentBuy.atr * currentBuy.buyAmount} (x${
-						config.ATRmultiplier
-					}) | ${currentBuy.time}`
+					` ATR:${currentBuy.atr} (x${config.ATRmultiplier}) | ${currentBuy.time}`
 				)
 		)
 	}

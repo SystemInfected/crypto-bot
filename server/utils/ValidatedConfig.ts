@@ -1,5 +1,5 @@
-import configData from '../data/config.json'
-import configSchema from '../data/schema.config.json'
+import configData from '../config/config.json'
+import configSchema from '../config/schema.config.json'
 import { GlobalConfig } from '../components/Interfaces'
 import { logError } from './Logger'
 import Ajv from 'ajv'
