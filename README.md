@@ -38,27 +38,27 @@ exchangeClient.setSandboxMode(true) // For testing in sandbox environment
    Schema available at _/server/config/schema.config.json_
 
 ```json
-	"coin": {
-		"shortName": "BTC",
-		"fullName": "Bitcoin"
-	},
-	"stableCoin": {
-		"shortName": "USDT",
-		"fullName": "Tether"
-	},
-	"allocation": 0.1,
-	"tickInterval": 3,
-	"concurrentOrders": 3,
-	"minInitialValues": 15,
-	"minAlgorithmValues": 25,
-	"longROC": 14,
-	"shortROC": 11,
-	"WMA": 10,
-	"atrWMA": 20,
-	"buyBuffer": 4,
-	"falsePositiveBuffer": 0.6,
-	"sellBuffer": 2,
-	"atrMultiplier": 2.5
+"coin": {
+	"shortName": "BTC",
+	"fullName": "Bitcoin"
+},
+"stableCoin": {
+	"shortName": "USDT",
+	"fullName": "Tether"
+},
+"allocation": 0.1,
+"tickInterval": 3,
+"concurrentOrders": 3,
+"minInitialValues": 15,
+"minAlgorithmValues": 25,
+"longROC": 14,
+"shortROC": 11,
+"WMA": 10,
+"atrWMA": 20,
+"buyBuffer": 4,
+"falsePositiveBuffer": 0.6,
+"sellBuffer": 2,
+"atrMultiplier": 2.5
 ```
 
 4. Build graph frontend
