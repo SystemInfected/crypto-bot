@@ -12,7 +12,7 @@ _ATT: This is built mostly for fun. I am no trading expert, use this at your own
 
 - [x] Finish algorithm for BUY
 - [x] Finish algorithm for SELL
-- [ ] Test and fine tune algorithms until good BUY/SELL results
+- [x] Test and fine tune algorithms until good BUY/SELL results
 - [x] Connect to Graph frontend
 - [x] Allow multiple concurrent orders
 - [x] Connect to exchange
