@@ -3,7 +3,7 @@
 
 The algorithm is based on the <a href="https://en.wikipedia.org/wiki/Coppock_curve" target="_blank">Coppock Curve</a> for **BUY** indication and ATR (WMA10 of TR) for **SELL** indication.
 
-CCXT with Binance is used to get current price data and connect to exchange.  
+CCXT is used to get current price data and connect to exchange.  
 <a href="https://ccxt.readthedocs.io/en/latest/manual.html#exchanges" target="_blank">Available exchanges with CCXT</a>
 
 _ATT: This is built mostly for fun. I am no trading expert, use this at your own risk._
@@ -11,7 +11,7 @@ _ATT: This is built mostly for fun. I am no trading expert, use this at your own
 ### Installation
 
 1. Create a .env file in root with desired port and API keys  
-(structure depending on exchange API)
+Structure depending on exchange API
 ```
 PORT=4040
 API_KEY=ABCDE
@@ -31,7 +31,7 @@ const exchangeClient = new ccxt.yourselectedexchange({
 exchangeClient.setSandboxMode(true) // For testing in sandbox environment
 ```
 
-3. Configure algorithm and trading configurations in /server/config/config.json  
+3. Configure algorithm and trading configurations in _/server/config/config.json_  
 Schema available at _/server/config/schema.config.json_
 ```json
 {
