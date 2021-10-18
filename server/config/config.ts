@@ -5,6 +5,6 @@ const exchangeClient = new ccxt.binance({
 	secret: process.env.API_SECRET,
 	enableRateLimit: true,
 })
-exchangeClient.setSandboxMode(true) // For testing in sandbox environment
+// exchangeClient.setSandboxMode(true) // For testing in sandbox environment
 
 export default exchangeClient

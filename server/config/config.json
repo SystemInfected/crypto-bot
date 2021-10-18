@@ -1,7 +1,7 @@
 {
 	"coin": {
-		"shortName": "BTC",
-		"fullName": "Bitcoin"
+		"shortName": "ETH",
+		"fullName": "Ethereum"
 	},
 	"stableCoin": {
 		"shortName": "USDT",

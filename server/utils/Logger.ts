@@ -82,8 +82,11 @@ export const logBalance = (balance: Balance): void => {
 			const coinBalance = Object.values(balance).filter(
 				(value, i) => i === index
 			)
-			return `${key}: ${coinBalance}`
+			if (parseInt(coinBalance.toString()) > 0) {
+				return `${key}: ${coinBalance}`
+			}
 		})
+		.filter((value) => value)
 		.join(', ')
 	console.log(chalk.blue('\nExchange balance: ') + chalk.white(balanceString))
 }
