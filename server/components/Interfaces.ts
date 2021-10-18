@@ -15,7 +15,9 @@ export interface GlobalConfig {
 	/** Minimum allowed order size at exchange.
 	 *I.e 10 USDT at Binance */
 	minOrderSize: number
-	/** Allocation of assets at exchange, */
+	/** Minimum gain percentage to sell */
+	minGainPercentage: number
+	/** Allocation of assets at exchange */
 	allocation: number
 	/** "Interval (minutes) inbetween each request for current values.
 	 *I.e. allowed intervals for Binance is 1m, 3m, 5m, 15m, 30m */

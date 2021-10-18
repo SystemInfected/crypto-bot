@@ -49,7 +49,8 @@ export const runATRAlgorithm = (coinHistory: CoinValuesProps[]): number => {
 		TRValues.push(Math.max(...TR))
 	}
 	const ATR = getWMA(TRValues, config.atrWMA)
-	return ATR
+	const minATR = coinHistory[0].average * (config.minGainPercentage / 100)
+	return Math.max(ATR, minATR)
 }
 
 export const analyzeCoppock = (coppockValues: number[]): IndicationType => {

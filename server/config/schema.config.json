@@ -35,6 +35,10 @@
 			"type": "number",
 			"description": "Minimum allowed order size at exchange. I.e 10 USDT at Binance"
 		},
+		"minGainPercentage": {
+			"type": "number",
+			"description": "Minimum gain percentage to sell"
+		},
 		"allocation": {
 			"type": "number",
 			"description": "Allocation of assets at exchange"
@@ -91,6 +95,9 @@
 	"required": [
 		"coin",
 		"stableCoin",
+		"minTradeAmount",
+		"minOrderSize",
+		"minGainPercentage",
 		"allocation",
 		"tickInterval",
 		"concurrentOrders",

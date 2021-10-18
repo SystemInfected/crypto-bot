@@ -20,6 +20,7 @@ const emptyConfig: GlobalConfig = {
 	},
 	minTradeAmount: 0,
 	minOrderSize: 0,
+	minGainPercentage: 0,
 	allocation: 0,
 	tickInterval: 0,
 	concurrentOrders: 0,
