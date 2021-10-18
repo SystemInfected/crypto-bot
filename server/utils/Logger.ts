@@ -82,7 +82,7 @@ export const logBalance = (balance: Balance): void => {
 			const coinBalance = Object.values(balance).filter(
 				(value, i) => i === index
 			)
-			if (parseInt(coinBalance.toString()) > 0) {
+			if (parseFloat(coinBalance.toString()) > 0) {
 				return `${key}: ${coinBalance}`
 			}
 		})

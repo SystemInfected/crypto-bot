@@ -5,13 +5,16 @@ import exchangeClient from '../config/config'
 
 export const getBalance = async (): Promise<{
 	total: Balance
+	currentStableCoin: number
 	currentCoin: number
 }> => {
 	const balance = await exchangeClient.fetchBalance()
 
 	return {
 		total: balance.total,
-		currentCoin: balance.total[config.stableCoin.shortName as keyof Balance],
+		currentStableCoin:
+			balance.total[config.stableCoin.shortName as keyof Balance],
+		currentCoin: balance.total[config.coin.shortName as keyof Balance],
 	}
 }
 
