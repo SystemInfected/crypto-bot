@@ -74,7 +74,7 @@ const buySellHistory: {
 	result?: number
 }[] = storedBuySellHistory
 
-let currentStatus: string
+let currentBuyStatus: string
 let currentSellStatus: string
 
 const storedCurrentBuys = JSON.parse(
@@ -135,7 +135,7 @@ const tick = async (): Promise<void> => {
 	const storedTransactions: Array<StoredTransactionsProps> = JSON.parse(
 		transactionStorage.getItem(startupData.timestamp.toString()) || '[]'
 	)
-	currentStatus = 'Waiting for indication to buy'
+	currentBuyStatus = 'Waiting for indication to buy'
 	const priceData = await getPrice()
 	try {
 		displayLoadingHeader(startupData.time)
@@ -162,8 +162,31 @@ const tick = async (): Promise<void> => {
 		const balance = await getBalance()
 		const currentStableCoinBalance = balance.currentStableCoin
 
-		const amountToBuy =
+		let amountToBuyFor =
 			(currentStableCoinBalance * config.allocation) / averagePrice
+		if (amountToBuyFor < config.minOrderSize) {
+			if (config.minOrderSize < currentStableCoinBalance) {
+				amountToBuyFor = config.minOrderSize
+			} else {
+				amountToBuyFor = 0
+				currentBuyStatus = `Not enough ${config.stableCoin.shortName} available to buy`
+			}
+		}
+
+		let amountToBuy = amountToBuyFor / currentPrice.close
+		if (amountToBuy > 0 && amountToBuy < config.minTradeAmount) {
+			if (config.minOrderSize < currentStableCoinBalance) {
+				amountToBuyFor = config.minOrderSize
+				amountToBuy = amountToBuyFor / currentPrice.close
+				if (amountToBuy < config.minTradeAmount) {
+					amountToBuyFor = 0
+					currentBuyStatus = `Not enough ${config.stableCoin.shortName} available to buy`
+				}
+			} else {
+				amountToBuyFor = 0
+				currentBuyStatus = `Not enough ${config.stableCoin.shortName} available to buy`
+			}
+		}
 
 		const dateObject = new Date()
 		const dateFormatted = dateObject.toLocaleString()
@@ -371,7 +394,10 @@ const tick = async (): Promise<void> => {
 			}
 		}
 
-		if (Object.keys(currentBuys).length < config.concurrentOrders) {
+		if (
+			Object.keys(currentBuys).length < config.concurrentOrders &&
+			amountToBuyFor > 0
+		) {
 			const priceDetails = await get12hPriceDetails()
 			try {
 				const maxBuyPrice =
@@ -382,7 +408,7 @@ const tick = async (): Promise<void> => {
 					const analyzeBuyResult = analyzeCoppock(coppockValues)
 					switch (analyzeBuyResult) {
 						case IndicationType.BUY: {
-							const buyOrder = await createBuyOrder(amountToBuy)
+							const buyOrder = await createBuyOrder(amountToBuyFor)
 							try {
 								if (buyOrder.status === 'closed') {
 									const newBalance = await getBalance()
@@ -443,7 +469,7 @@ const tick = async (): Promise<void> => {
 									}
 									localStorage.setItem('openOrders', JSON.stringify(openOrders))
 								} else {
-									currentStatus =
+									currentBuyStatus =
 										'Buy order got canceled, waiting for new indication to buy'
 								}
 							} catch (error) {
@@ -457,13 +483,13 @@ const tick = async (): Promise<void> => {
 							break
 					}
 				} else {
-					currentStatus = `Average price is above the buy limit (${maxBuyPrice} ${config.stableCoin.shortName})`
+					currentBuyStatus = `Average price is above the buy limit (${maxBuyPrice} ${config.stableCoin.shortName})`
 				}
 			} catch (error) {
 				logError(`Get price details error:  ${error}`)
 			}
 		} else {
-			currentStatus = `Concurrent orders limit(${config.concurrentOrders}) is reached`
+			currentBuyStatus = `Concurrent orders limit(${config.concurrentOrders}) is reached`
 		}
 
 		if (Object.keys(currentBuys).length > 0) {
@@ -554,7 +580,7 @@ const tick = async (): Promise<void> => {
 
 		displayCurrentValueHeader(startupData.time, dateFormatted, coinHistory[0])
 		logCurrentCoppockValue(coppockValues[0] || 0)
-		logStatus(currentStatus, currentSellStatus)
+		logStatus(currentBuyStatus, currentSellStatus)
 		logBalance(newBalance.total)
 		logCurrentBuys(currentBuys)
 		logOpenOrders(openOrders)

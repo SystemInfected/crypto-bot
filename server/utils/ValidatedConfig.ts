@@ -18,6 +18,8 @@ const emptyConfig: GlobalConfig = {
 		shortName: '',
 		fullName: '',
 	},
+	minTradeAmount: 0,
+	minOrderSize: 0,
 	allocation: 0,
 	tickInterval: 0,
 	concurrentOrders: 0,
