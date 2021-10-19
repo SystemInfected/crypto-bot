@@ -207,7 +207,11 @@ const tick = async (): Promise<void> => {
 				const openOrder = openOrders[key]
 				const orderStatus = await getOrderStatus(openOrder.orderId)
 				const newBalance = await getBalance()
-				let buyAmount = orderStatus.filled
+				const amountFee =
+					orderStatus.fee.currency === config.coin.shortName
+						? orderStatus.fee.cost
+						: 0
+				let buyAmount = orderStatus.filled - amountFee
 				if (openOrder.type === IndicationType.BUY) {
 					if (buyAmount > openOrder.currentBalance) {
 						buyAmount = openOrder.currentBalance
@@ -424,7 +428,11 @@ const tick = async (): Promise<void> => {
 							try {
 								if (buyOrder.status === 'closed') {
 									const newBalance = await getBalance()
-									let buyAmount = buyOrder.filled
+									const amountFee =
+										buyOrder.fee.currency === config.coin.shortName
+											? buyOrder.fee.cost
+											: 0
+									let buyAmount = buyOrder.filled - amountFee
 									if (buyAmount > newBalance.currentCoin) {
 										buyAmount = newBalance.currentCoin
 									}
