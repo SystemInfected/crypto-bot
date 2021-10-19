@@ -206,7 +206,10 @@ const tick = async (): Promise<void> => {
 				const openOrder = openOrders[key]
 				const orderStatus = await getOrderStatus(openOrder.orderId)
 				const newBalance = await getBalance()
-
+				let buyAmount = orderStatus.amount
+				if (buyAmount > newBalance.currentCoin) {
+					buyAmount = newBalance.currentCoin
+				}
 				if (openOrder.type === IndicationType.BUY) {
 					if (
 						orderStatus.status === 'closed' ||
@@ -221,7 +224,7 @@ const tick = async (): Promise<void> => {
 						buySellHistory.unshift({
 							time: dateFormatted,
 							status: IndicationType.BUY,
-							buyAmount: newBalance.currentCoin - balance.currentCoin,
+							buyAmount: buyAmount,
 							buyCost: buyCost,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
 						})
@@ -232,7 +235,7 @@ const tick = async (): Promise<void> => {
 						currentBuys[buyId] = {
 							time: dateFormatted,
 							buyPrice: buyCost,
-							buyAmount: newBalance.currentCoin - balance.currentCoin,
+							buyAmount: buyAmount,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
 							atr: atrValue,
 						}
@@ -273,10 +276,6 @@ const tick = async (): Promise<void> => {
 						localStorage.setItem('openOrders', JSON.stringify(openOrders))
 					}
 				} else {
-					const sellAmount =
-						orderStatus.fee.currency === config.coin.shortName
-							? orderStatus.filled - orderStatus.fee.cost
-							: orderStatus.filled
 					const sellCost =
 						orderStatus.fee.currency === config.stableCoin.shortName
 							? orderStatus.cost - orderStatus.fee.cost
@@ -285,7 +284,7 @@ const tick = async (): Promise<void> => {
 						buySellHistory.unshift({
 							time: dateFormatted,
 							status: IndicationType.SELL,
-							buyAmount: sellAmount,
+							buyAmount: buyAmount,
 							buyCost: sellCost,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
 							result: sellCost - openOrder.buyPrice,
@@ -316,12 +315,12 @@ const tick = async (): Promise<void> => {
 						buySellHistory.unshift({
 							time: dateFormatted,
 							status: IndicationType.SELL,
-							buyAmount: sellAmount,
+							buyAmount: buyAmount,
 							buyCost: sellCost,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
 							result:
 								sellCost -
-								(openOrder.buyPrice / orderStatus.amount) * sellAmount,
+								(openOrder.buyPrice / orderStatus.amount) * buyAmount,
 						})
 						const buyId = `${config.coin.shortName}${Date.now()}-REMAINING`
 						const atrValue = runATRAlgorithm(coinHistory)
@@ -333,7 +332,7 @@ const tick = async (): Promise<void> => {
 								(newBalance.currentCoin - balance.currentCoin),
 							buyCost:
 								openOrder.buyPrice -
-								(openOrder.buyPrice / orderStatus.amount) * sellAmount,
+								(openOrder.buyPrice / orderStatus.amount) * buyAmount,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
 						})
 						atrValues.unshift({
@@ -344,7 +343,7 @@ const tick = async (): Promise<void> => {
 							time: dateFormatted,
 							buyPrice:
 								openOrder.buyPrice -
-								(openOrder.buyPrice / orderStatus.amount) * sellAmount,
+								(openOrder.buyPrice / orderStatus.amount) * buyAmount,
 							buyAmount:
 								openOrder.buyAmount -
 								(newBalance.currentCoin - balance.currentCoin),
@@ -412,6 +411,10 @@ const tick = async (): Promise<void> => {
 							try {
 								if (buyOrder.status === 'closed') {
 									const newBalance = await getBalance()
+									let buyAmount = buyOrder.amount
+									if (buyAmount > newBalance.currentCoin) {
+										buyAmount = newBalance.currentCoin
+									}
 									const buyId = `${config.coin.shortName}${Date.now()}`
 									const atrValue = runATRAlgorithm(coinHistory)
 									const buyCost =
@@ -421,7 +424,7 @@ const tick = async (): Promise<void> => {
 									buySellHistory.unshift({
 										time: dateFormatted,
 										status: IndicationType.BUY,
-										buyAmount: newBalance.currentCoin - balance.currentCoin,
+										buyAmount: buyAmount,
 										buyCost: buyCost,
 										averagePrice: averagePrice,
 									})
@@ -429,7 +432,7 @@ const tick = async (): Promise<void> => {
 									currentBuys[buyId] = {
 										time: dateFormatted,
 										buyPrice: buyCost,
-										buyAmount: newBalance.currentCoin - balance.currentCoin,
+										buyAmount: buyAmount,
 										averagePrice: averagePrice,
 										atr: atrValue,
 									}
