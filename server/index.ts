@@ -68,6 +68,7 @@ const storedBuySellHistory = JSON.parse(
 const buySellHistory: {
 	time: string
 	status: IndicationType
+	coin: string
 	buyAmount: number
 	buyCost: number
 	averagePrice: number
@@ -224,6 +225,7 @@ const tick = async (): Promise<void> => {
 						buySellHistory.unshift({
 							time: dateFormatted,
 							status: IndicationType.BUY,
+							coin: config.coin.shortName,
 							buyAmount: buyAmount,
 							buyCost: buyCost,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
@@ -284,6 +286,7 @@ const tick = async (): Promise<void> => {
 						buySellHistory.unshift({
 							time: dateFormatted,
 							status: IndicationType.SELL,
+							coin: config.coin.shortName,
 							buyAmount: buyAmount,
 							buyCost: sellCost,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
@@ -315,6 +318,7 @@ const tick = async (): Promise<void> => {
 						buySellHistory.unshift({
 							time: dateFormatted,
 							status: IndicationType.SELL,
+							coin: config.coin.shortName,
 							buyAmount: buyAmount,
 							buyCost: sellCost,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
@@ -328,6 +332,7 @@ const tick = async (): Promise<void> => {
 						buySellHistory.unshift({
 							time: dateFormatted,
 							status: IndicationType.BUY,
+							coin: config.coin.shortName,
 							buyAmount:
 								openOrder.buyAmount -
 								(newBalance.currentCoin - balance.currentCoin),
@@ -428,6 +433,7 @@ const tick = async (): Promise<void> => {
 									buySellHistory.unshift({
 										time: dateFormatted,
 										status: IndicationType.BUY,
+										coin: config.coin.shortName,
 										buyAmount: buyAmount,
 										buyCost: buyCost,
 										averagePrice: averagePrice,
@@ -524,6 +530,7 @@ const tick = async (): Promise<void> => {
 								buySellHistory.unshift({
 									time: dateFormatted,
 									status: IndicationType.SELL,
+									coin: config.coin.shortName,
 									buyAmount: sellAmount,
 									buyCost: sellCost,
 									averagePrice: averagePrice,
