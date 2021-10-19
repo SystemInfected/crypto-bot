@@ -209,8 +209,8 @@ const tick = async (): Promise<void> => {
 				const newBalance = await getBalance()
 				let buyAmount = orderStatus.filled
 				if (openOrder.type === IndicationType.BUY) {
-					if (buyAmount > newBalance.currentCoin) {
-						buyAmount = newBalance.currentCoin
+					if (buyAmount > openOrder.currentBalance) {
+						buyAmount = openOrder.currentBalance
 					}
 					if (
 						orderStatus.status === 'closed' ||
@@ -266,10 +266,12 @@ const tick = async (): Promise<void> => {
 					} else {
 						delete openOrders[key]
 						const buyId = key
+						const currentBalance = openOrder.currentBalance
 						openOrders[buyId] = {
 							time: dateFormatted,
 							orderId: orderStatus.id,
 							type: IndicationType.BUY,
+							currentBalance: currentBalance,
 							buyPrice: orderStatus.cost,
 							buyAmount: orderStatus.amount,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
@@ -387,10 +389,12 @@ const tick = async (): Promise<void> => {
 					} else {
 						delete openOrders[key]
 						const buyId = key
+						const currentBalance = openOrder.currentBalance
 						openOrders[buyId] = {
 							time: dateFormatted,
 							orderId: orderStatus.id,
 							type: IndicationType.SELL,
+							currentBalance: currentBalance,
 							buyPrice: openOrder.buyPrice,
 							buyAmount: orderStatus.amount,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
@@ -475,6 +479,7 @@ const tick = async (): Promise<void> => {
 										time: dateFormatted,
 										orderId: buyOrder.id,
 										type: IndicationType.BUY,
+										currentBalance: balance.currentCoin,
 										buyPrice: buyOrder.cost,
 										buyAmount: buyOrder.amount,
 										averagePrice: averagePrice,
@@ -565,6 +570,7 @@ const tick = async (): Promise<void> => {
 									time: dateFormatted,
 									orderId: sellOrder.id,
 									type: IndicationType.SELL,
+									currentBalance: balance.currentCoin,
 									buyPrice: currentBuy.buyPrice,
 									buyAmount: sellOrder.amount,
 									averagePrice: averagePrice,

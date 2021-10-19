@@ -67,6 +67,7 @@ export interface OpenOrder {
 		time: string
 		orderId: string
 		type: IndicationType
+		currentBalance: number
 		buyPrice: number
 		buyAmount: number
 		averagePrice: number
