@@ -213,13 +213,13 @@ const tick = async (): Promise<void> => {
 						: 0
 				let buyAmount = orderStatus.filled - amountFee
 				if (openOrder.type === IndicationType.BUY) {
-					if (buyAmount > openOrder.currentBalance) {
-						buyAmount = openOrder.currentBalance
-					}
 					if (
 						orderStatus.status === 'closed' ||
 						orderStatus.status === 'canceled'
 					) {
+						if (buyAmount > newBalance.currentCoin) {
+							buyAmount = newBalance.currentCoin
+						}
 						const buyId = `${config.coin.shortName}${Date.now()}`
 						const atrValue = runATRAlgorithm(coinHistory)
 						const buyCost =
