@@ -19,19 +19,27 @@ export const getBalance = async (): Promise<{
 }
 
 export const createBuyOrder = async (buyAmount: number): Promise<Order> => {
+	await exchangeClient.loadMarkets()
 	const buyOrder = await exchangeClient.createMarketOrder(
 		`${config.coin.shortName}/${config.stableCoin.shortName}`,
 		'buy',
-		buyAmount
+		exchangeClient.amountToPrecision(
+			`${config.coin.shortName}/${config.stableCoin.shortName}`,
+			buyAmount
+		)
 	)
 	return buyOrder
 }
 
 export const createSellOrder = async (sellAmount: number): Promise<Order> => {
+	await exchangeClient.loadMarkets()
 	const sellOrder = await exchangeClient.createMarketOrder(
 		`${config.coin.shortName}/${config.stableCoin.shortName}`,
 		'sell',
-		sellAmount
+		exchangeClient.amountToPrecision(
+			`${config.coin.shortName}/${config.stableCoin.shortName}`,
+			sellAmount
+		)
 	)
 	return sellOrder
 }
