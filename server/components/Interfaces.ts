@@ -1,3 +1,5 @@
+import { Balance } from 'ccxt'
+
 export interface GlobalConfig {
 	/** Cryptocurrency to trade (i.e. Etherium) */
 	coin: {
@@ -52,6 +54,21 @@ export enum IndicationType {
 	HODL,
 }
 
+export interface StartupDataProps {
+	time: string
+	timestamp: number
+}
+
+export interface BuySellHistoryProps {
+	time: string
+	status: IndicationType
+	coin: string
+	buyAmount: number
+	buyCost: number
+	averagePrice: number
+	result?: number
+}
+
 export interface CurrentBuy {
 	[key: string]: {
 		time: string
@@ -104,4 +121,10 @@ export interface StoredTransactionsProps {
 	fee: number
 	feeCurrency: string
 	result?: number
+}
+
+export interface BalanceResponse {
+	total: Balance
+	currentStableCoin: number
+	currentCoin: number
 }

@@ -2,15 +2,33 @@ import express from 'express'
 import cors from 'cors'
 import path from 'path'
 import { LocalStorage } from 'node-localstorage'
+require('dotenv').config()
+
 import {
 	createBuyOrder,
 	createSellOrder,
 	getBalance,
 	getPrice,
-	get12hPriceDetails,
+	getMaxBuyPrice,
 	getPriceHistory,
 	getOrderStatus,
 } from './components/CryptoData'
+import {
+	BuySellHistoryProps,
+	CoinValuesProps,
+	CurrentBuy,
+	IndicationType,
+	OpenOrder,
+	StartupDataProps,
+	StoredTransactionsProps,
+} from './components/Interfaces'
+import {
+	analyzeATR,
+	analyzeCoppock,
+	runATRAlgorithm,
+	runCoppockAlgorithm,
+	getAmountToBuy,
+} from './components/calculations/'
 import {
 	displayCurrentValueHeader,
 	displayLoadingHeader,
@@ -27,27 +45,9 @@ import {
 	logOpenOrders,
 	logStatus,
 } from './utils/Logger'
-import {
-	CoinValuesProps,
-	CurrentBuy,
-	IndicationType,
-	OpenOrder,
-	StoredTransactionsProps,
-} from './components/Interfaces'
-import {
-	analyzeATR,
-	analyzeCoppock,
-	runATRAlgorithm,
-	runCoppockAlgorithm,
-} from './components/AlgorithmCalc'
-require('dotenv').config()
 
 const localStorage = new LocalStorage('./storage')
 const transactionStorage = new LocalStorage('./transactions')
-interface StartupDataProps {
-	time: string
-	timestamp: number
-}
 
 const startupData: StartupDataProps = { time: '', timestamp: 0 }
 const coinHistory: Array<CoinValuesProps> = []
@@ -65,15 +65,7 @@ const atrValues: { atr: number; price: number }[] = []
 const storedBuySellHistory = JSON.parse(
 	localStorage.getItem('buySellHistory') || '[]'
 )
-const buySellHistory: {
-	time: string
-	status: IndicationType
-	coin: string
-	buyAmount: number
-	buyCost: number
-	averagePrice: number
-	result?: number
-}[] = storedBuySellHistory
+const buySellHistory: BuySellHistoryProps[] = storedBuySellHistory
 
 let currentBuyStatus: string
 let currentSellStatus: string
@@ -102,25 +94,15 @@ app.listen(port)
 
 const initialLoad = async (): Promise<void> => {
 	const coinHistoryData = await getPriceHistory()
-	coinHistoryData.forEach((history, index) => {
-		const averagePrice = (history[1] + history[2] + history[3] + history[4]) / 4
-		const dateObject = new Date(history[0])
+	coinHistoryData.forEach((historyValue, index) => {
+		const dateObject = new Date(historyValue.timestamp)
 		const timeFormatted = dateObject.toLocaleTimeString([], {
 			hour: '2-digit',
 			minute: '2-digit',
 		})
 
-		const coinValue: CoinValuesProps = {
-			timestamp: history[0],
-			open: history[1],
-			high: history[2],
-			low: history[3],
-			close: history[4],
-			volume: history[5],
-			average: averagePrice,
-		}
-		coinHistory.unshift(coinValue)
-		priceChartData.push({ time: timeFormatted, price: coinValue })
+		coinHistory.unshift(historyValue)
+		priceChartData.push({ time: timeFormatted, price: historyValue })
 
 		if (index >= config.minInitialValues) {
 			const coppockValue = runCoppockAlgorithm(coinHistory)
@@ -137,21 +119,10 @@ const tick = async (): Promise<void> => {
 		transactionStorage.getItem(startupData.timestamp.toString()) || '[]'
 	)
 	currentBuyStatus = 'Waiting for indication to buy'
-	const priceData = await getPrice()
+	const currentPrice = await getPrice()
 	try {
 		displayLoadingHeader(startupData.time)
 
-		const averagePrice =
-			(priceData.open + priceData.high + priceData.low + priceData.close) / 4
-		const currentPrice: CoinValuesProps = {
-			timestamp: priceData.timestamp,
-			open: priceData.open,
-			high: priceData.high,
-			low: priceData.low,
-			close: priceData.close,
-			volume: priceData.volume,
-			average: averagePrice,
-		}
 		const priceDateObject = new Date(currentPrice.timestamp)
 		const priceTimeFormatted = priceDateObject.toLocaleTimeString([], {
 			hour: '2-digit',
@@ -161,41 +132,12 @@ const tick = async (): Promise<void> => {
 		priceChartData.push({ time: priceTimeFormatted, price: currentPrice })
 
 		const balance = await getBalance()
-		const currentStableCoinBalance = balance.currentStableCoin
 
-		const fluctuationMultiplier = 1.05
-		let amountToBuyFor = currentStableCoinBalance * config.allocation
-		if (amountToBuyFor < config.minOrderSize * fluctuationMultiplier) {
-			if (
-				config.minOrderSize * fluctuationMultiplier <
-				currentStableCoinBalance
-			) {
-				amountToBuyFor = config.minOrderSize * fluctuationMultiplier
-			} else {
-				amountToBuyFor = 0
-				currentBuyStatus = `Not enough ${config.stableCoin.shortName} available to buy`
-			}
-		}
-
-		let amountToBuy = amountToBuyFor / currentPrice.close
-		if (amountToBuy > 0 && amountToBuy < config.minTradeAmount) {
-			if (
-				config.minOrderSize * fluctuationMultiplier <
-				currentStableCoinBalance
-			) {
-				amountToBuyFor = config.minOrderSize * fluctuationMultiplier
-				amountToBuy = amountToBuyFor / currentPrice.close
-				if (amountToBuy < config.minTradeAmount) {
-					amountToBuyFor = 0
-					amountToBuy = 0
-					currentBuyStatus = `Not enough ${config.stableCoin.shortName} available to buy`
-				}
-			} else {
-				amountToBuyFor = 0
-				amountToBuy = 0
-				currentBuyStatus = `Not enough ${config.stableCoin.shortName} available to buy`
-			}
-		}
+		const amountToBuy = await getAmountToBuy(currentPrice, balance)
+		currentBuyStatus =
+			amountToBuy === 0
+				? `Not enough ${config.stableCoin.shortName} available to buy`
+				: ''
 
 		const dateObject = new Date()
 		const dateFormatted = dateObject.toLocaleString()
@@ -420,19 +362,15 @@ const tick = async (): Promise<void> => {
 
 		if (
 			Object.keys(currentBuys).length < config.concurrentOrders &&
-			amountToBuyFor > 0
+			amountToBuy > 0
 		) {
-			const priceDetails = await get12hPriceDetails()
+			const maxBuyPrice = await getMaxBuyPrice('12h')
 			try {
-				const maxBuyPrice =
-					priceDetails.open +
-					(priceDetails.close - priceDetails.open) * config.falsePositiveBuffer
-
-				if (averagePrice < maxBuyPrice) {
+				if (currentPrice.average < maxBuyPrice) {
 					const analyzeBuyResult = analyzeCoppock(coppockValues)
 					switch (analyzeBuyResult) {
 						case IndicationType.BUY: {
-							const buyOrder = await createBuyOrder(amountToBuyFor)
+							const buyOrder = await createBuyOrder(amountToBuy)
 							try {
 								if (buyOrder.status === 'closed') {
 									const newBalance = await getBalance()
@@ -456,14 +394,17 @@ const tick = async (): Promise<void> => {
 										coin: config.coin.shortName,
 										buyAmount: buyAmount,
 										buyCost: buyCost,
-										averagePrice: averagePrice,
+										averagePrice: currentPrice.average,
 									})
-									atrValues.unshift({ atr: atrValue, price: averagePrice })
+									atrValues.unshift({
+										atr: atrValue,
+										price: currentPrice.average,
+									})
 									currentBuys[buyId] = {
 										time: dateFormatted,
 										buyPrice: buyCost,
 										buyAmount: buyAmount,
-										averagePrice: averagePrice,
+										averagePrice: currentPrice.average,
 										atr: atrValue,
 									}
 									localStorage.setItem(
@@ -498,7 +439,7 @@ const tick = async (): Promise<void> => {
 										currentBalance: balance.currentCoin,
 										buyPrice: buyOrder.cost,
 										buyAmount: buyOrder.amount,
-										averagePrice: averagePrice,
+										averagePrice: currentPrice.average,
 										remaining: buyOrder.remaining,
 									}
 									localStorage.setItem('openOrders', JSON.stringify(openOrders))
@@ -554,7 +495,7 @@ const tick = async (): Promise<void> => {
 									coin: config.coin.shortName,
 									buyAmount: sellAmount,
 									buyCost: sellCost,
-									averagePrice: averagePrice,
+									averagePrice: currentPrice.average,
 									result: sellCost - currentBuy.averagePrice * sellAmount,
 								})
 								currentSellStatus = ''
@@ -589,7 +530,7 @@ const tick = async (): Promise<void> => {
 									currentBalance: balance.currentCoin,
 									buyPrice: currentBuy.buyPrice,
 									buyAmount: sellOrder.amount,
-									averagePrice: averagePrice,
+									averagePrice: currentPrice.average,
 									remaining: sellOrder.remaining,
 								}
 								currentSellStatus = ''

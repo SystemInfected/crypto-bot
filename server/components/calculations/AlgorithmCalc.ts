@@ -1,5 +1,5 @@
-import { config } from '../utils/ValidatedConfig'
-import { CoinValuesProps, IndicationType } from './Interfaces'
+import { config } from '../../utils/ValidatedConfig'
+import { CoinValuesProps, IndicationType } from '../Interfaces'
 
 const ROCsum: number[] = []
 let ATRDelayCheck: string[] = []
