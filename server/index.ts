@@ -163,11 +163,14 @@ const tick = async (): Promise<void> => {
 		const balance = await getBalance()
 		const currentStableCoinBalance = balance.currentStableCoin
 
-		let amountToBuyFor =
-			(currentStableCoinBalance * config.allocation) / averagePrice
-		if (amountToBuyFor < config.minOrderSize) {
-			if (config.minOrderSize < currentStableCoinBalance) {
-				amountToBuyFor = config.minOrderSize
+		const fluctuationMultiplier = 1.05
+		let amountToBuyFor = currentStableCoinBalance * config.allocation
+		if (amountToBuyFor < config.minOrderSize * fluctuationMultiplier) {
+			if (
+				config.minOrderSize * fluctuationMultiplier <
+				currentStableCoinBalance
+			) {
+				amountToBuyFor = config.minOrderSize * fluctuationMultiplier
 			} else {
 				amountToBuyFor = 0
 				currentBuyStatus = `Not enough ${config.stableCoin.shortName} available to buy`
@@ -176,15 +179,20 @@ const tick = async (): Promise<void> => {
 
 		let amountToBuy = amountToBuyFor / currentPrice.close
 		if (amountToBuy > 0 && amountToBuy < config.minTradeAmount) {
-			if (config.minOrderSize < currentStableCoinBalance) {
-				amountToBuyFor = config.minOrderSize
+			if (
+				config.minOrderSize * fluctuationMultiplier <
+				currentStableCoinBalance
+			) {
+				amountToBuyFor = config.minOrderSize * fluctuationMultiplier
 				amountToBuy = amountToBuyFor / currentPrice.close
 				if (amountToBuy < config.minTradeAmount) {
 					amountToBuyFor = 0
+					amountToBuy = 0
 					currentBuyStatus = `Not enough ${config.stableCoin.shortName} available to buy`
 				}
 			} else {
 				amountToBuyFor = 0
+				amountToBuy = 0
 				currentBuyStatus = `Not enough ${config.stableCoin.shortName} available to buy`
 			}
 		}
