@@ -82,7 +82,7 @@ export const logBalance = (balance: Balance): void => {
 			const coinBalance = Object.values(balance).filter(
 				(value, i) => i === index
 			)
-			if (parseInt(coinBalance.toString()) > 0) {
+			if (parseFloat(coinBalance.toString()) > 0) {
 				return `${key}: ${coinBalance}`
 			}
 		})
@@ -136,6 +136,7 @@ export const logBuySellHistory = (
 	buySellIndicationArr: Array<{
 		time: string
 		status: IndicationType
+		coin: string
 		buyAmount: number
 		buyCost: number
 		averagePrice: number
@@ -152,7 +153,7 @@ export const logBuySellHistory = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('BUY ') +
 					chalk.green(
-						`${buySellIndication.buyAmount} ${config.coin.shortName} | Average price: ${buySellIndication.averagePrice} ${config.stableCoin.shortName} (Cost: ${buySellIndication.buyCost} ${config.stableCoin.shortName})`
+						`${buySellIndication.buyAmount} ${buySellIndication.coin} | Average price: ${buySellIndication.averagePrice} ${config.stableCoin.shortName} (Cost: ${buySellIndication.buyCost} ${config.stableCoin.shortName})`
 					)
 			)
 		} else if (buySellIndication.status === IndicationType.SELL) {
@@ -160,7 +161,7 @@ export const logBuySellHistory = (
 				chalk.green(`${buySellIndication.time}: `) +
 					chalk.green.bold('SELL ') +
 					chalk.green(
-						`${buySellIndication.buyAmount} ${config.coin.shortName} | Price: ${buySellIndication.buyCost} ${config.stableCoin.shortName} (Gain: ${buySellIndication.result} ${config.stableCoin.shortName})`
+						`${buySellIndication.buyAmount} ${buySellIndication.coin} | Price: ${buySellIndication.buyCost} ${config.stableCoin.shortName} (Gain: ${buySellIndication.result} ${config.stableCoin.shortName})`
 					)
 			)
 		}

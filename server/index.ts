@@ -68,13 +68,14 @@ const storedBuySellHistory = JSON.parse(
 const buySellHistory: {
 	time: string
 	status: IndicationType
+	coin: string
 	buyAmount: number
 	buyCost: number
 	averagePrice: number
 	result?: number
 }[] = storedBuySellHistory
 
-let currentStatus: string
+let currentBuyStatus: string
 let currentSellStatus: string
 
 const storedCurrentBuys = JSON.parse(
@@ -135,7 +136,7 @@ const tick = async (): Promise<void> => {
 	const storedTransactions: Array<StoredTransactionsProps> = JSON.parse(
 		transactionStorage.getItem(startupData.timestamp.toString()) || '[]'
 	)
-	currentStatus = 'Waiting for indication to buy'
+	currentBuyStatus = 'Waiting for indication to buy'
 	const priceData = await getPrice()
 	try {
 		displayLoadingHeader(startupData.time)
@@ -160,9 +161,41 @@ const tick = async (): Promise<void> => {
 		priceChartData.push({ time: priceTimeFormatted, price: currentPrice })
 
 		const balance = await getBalance()
-		const currentBalance = balance.currentCoin
+		const currentStableCoinBalance = balance.currentStableCoin
 
-		const buyAmount = (currentBalance * config.allocation) / averagePrice
+		const fluctuationMultiplier = 1.05
+		let amountToBuyFor = currentStableCoinBalance * config.allocation
+		if (amountToBuyFor < config.minOrderSize * fluctuationMultiplier) {
+			if (
+				config.minOrderSize * fluctuationMultiplier <
+				currentStableCoinBalance
+			) {
+				amountToBuyFor = config.minOrderSize * fluctuationMultiplier
+			} else {
+				amountToBuyFor = 0
+				currentBuyStatus = `Not enough ${config.stableCoin.shortName} available to buy`
+			}
+		}
+
+		let amountToBuy = amountToBuyFor / currentPrice.close
+		if (amountToBuy > 0 && amountToBuy < config.minTradeAmount) {
+			if (
+				config.minOrderSize * fluctuationMultiplier <
+				currentStableCoinBalance
+			) {
+				amountToBuyFor = config.minOrderSize * fluctuationMultiplier
+				amountToBuy = amountToBuyFor / currentPrice.close
+				if (amountToBuy < config.minTradeAmount) {
+					amountToBuyFor = 0
+					amountToBuy = 0
+					currentBuyStatus = `Not enough ${config.stableCoin.shortName} available to buy`
+				}
+			} else {
+				amountToBuyFor = 0
+				amountToBuy = 0
+				currentBuyStatus = `Not enough ${config.stableCoin.shortName} available to buy`
+			}
+		}
 
 		const dateObject = new Date()
 		const dateFormatted = dateObject.toLocaleString()
@@ -181,19 +214,32 @@ const tick = async (): Promise<void> => {
 			for (const key in openOrders) {
 				const openOrder = openOrders[key]
 				const orderStatus = await getOrderStatus(openOrder.orderId)
-
+				const newBalance = await getBalance()
+				const amountFee =
+					orderStatus.fee.currency === config.coin.shortName
+						? orderStatus.fee.cost
+						: 0
+				let buyAmount = orderStatus.filled - amountFee
 				if (openOrder.type === IndicationType.BUY) {
 					if (
 						orderStatus.status === 'closed' ||
 						orderStatus.status === 'canceled'
 					) {
+						if (buyAmount > newBalance.currentCoin) {
+							buyAmount = newBalance.currentCoin
+						}
 						const buyId = `${config.coin.shortName}${Date.now()}`
 						const atrValue = runATRAlgorithm(coinHistory)
+						const buyCost =
+							orderStatus.fee.currency === config.stableCoin.shortName
+								? orderStatus.cost - orderStatus.fee.cost
+								: orderStatus.cost
 						buySellHistory.unshift({
 							time: dateFormatted,
 							status: IndicationType.BUY,
-							buyAmount: orderStatus.filled,
-							buyCost: orderStatus.cost,
+							coin: config.coin.shortName,
+							buyAmount: buyAmount,
+							buyCost: buyCost,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
 						})
 						atrValues.unshift({
@@ -202,8 +248,8 @@ const tick = async (): Promise<void> => {
 						})
 						currentBuys[buyId] = {
 							time: dateFormatted,
-							buyPrice: orderStatus.cost,
-							buyAmount: orderStatus.filled,
+							buyPrice: buyCost,
+							buyAmount: buyAmount,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
 							atr: atrValue,
 						}
@@ -232,10 +278,12 @@ const tick = async (): Promise<void> => {
 					} else {
 						delete openOrders[key]
 						const buyId = key
+						const currentBalance = openOrder.currentBalance
 						openOrders[buyId] = {
 							time: dateFormatted,
 							orderId: orderStatus.id,
 							type: IndicationType.BUY,
+							currentBalance: currentBalance,
 							buyPrice: orderStatus.cost,
 							buyAmount: orderStatus.amount,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
@@ -244,14 +292,19 @@ const tick = async (): Promise<void> => {
 						localStorage.setItem('openOrders', JSON.stringify(openOrders))
 					}
 				} else {
+					const sellCost =
+						orderStatus.fee.currency === config.stableCoin.shortName
+							? orderStatus.cost - orderStatus.fee.cost
+							: orderStatus.cost
 					if (orderStatus.status === 'closed') {
 						buySellHistory.unshift({
 							time: dateFormatted,
 							status: IndicationType.SELL,
-							buyAmount: orderStatus.filled,
-							buyCost: orderStatus.cost,
+							coin: config.coin.shortName,
+							buyAmount: buyAmount,
+							buyCost: sellCost,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
-							result: orderStatus.cost - openOrder.buyPrice,
+							result: sellCost - openOrder.averagePrice * buyAmount,
 						})
 						delete openOrders[key]
 						localStorage.setItem('openOrders', JSON.stringify(openOrders))
@@ -269,7 +322,7 @@ const tick = async (): Promise<void> => {
 							cost: orderStatus.cost,
 							fee: orderStatus.fee.cost,
 							feeCurrency: orderStatus.fee.currency,
-							result: orderStatus.cost - openOrder.buyPrice,
+							result: orderStatus.cost - openOrder.averagePrice * buyAmount,
 						})
 						transactionStorage.setItem(
 							startupData.timestamp.toString(),
@@ -279,22 +332,28 @@ const tick = async (): Promise<void> => {
 						buySellHistory.unshift({
 							time: dateFormatted,
 							status: IndicationType.SELL,
-							buyAmount: orderStatus.filled,
-							buyCost: orderStatus.cost,
+							coin: config.coin.shortName,
+							buyAmount: buyAmount,
+							buyCost: sellCost,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
 							result:
-								orderStatus.cost -
-								(openOrder.buyPrice / orderStatus.amount) * orderStatus.filled,
+								sellCost -
+								((openOrder.averagePrice * buyAmount) / orderStatus.amount) *
+									buyAmount,
 						})
 						const buyId = `${config.coin.shortName}${Date.now()}-REMAINING`
 						const atrValue = runATRAlgorithm(coinHistory)
 						buySellHistory.unshift({
 							time: dateFormatted,
 							status: IndicationType.BUY,
-							buyAmount: orderStatus.remaining,
+							coin: config.coin.shortName,
+							buyAmount:
+								openOrder.buyAmount -
+								(newBalance.currentCoin - balance.currentCoin),
 							buyCost:
-								openOrder.buyPrice -
-								(openOrder.buyPrice / orderStatus.amount) * orderStatus.filled,
+								openOrder.averagePrice * buyAmount -
+								((openOrder.averagePrice * buyAmount) / orderStatus.amount) *
+									buyAmount,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
 						})
 						atrValues.unshift({
@@ -304,9 +363,12 @@ const tick = async (): Promise<void> => {
 						currentBuys[buyId] = {
 							time: dateFormatted,
 							buyPrice:
-								openOrder.buyPrice -
-								(openOrder.buyPrice / orderStatus.amount) * orderStatus.filled,
-							buyAmount: orderStatus.remaining,
+								openOrder.averagePrice * buyAmount -
+								((openOrder.averagePrice * buyAmount) / orderStatus.amount) *
+									buyAmount,
+							buyAmount:
+								openOrder.buyAmount -
+								(newBalance.currentCoin - balance.currentCoin),
 							averagePrice: orderStatus.average || openOrder.averagePrice,
 							atr: atrValue,
 						}
@@ -329,7 +391,8 @@ const tick = async (): Promise<void> => {
 							feeCurrency: orderStatus.fee.currency,
 							result:
 								orderStatus.cost -
-								(openOrder.buyPrice / orderStatus.amount) * orderStatus.filled,
+								((openOrder.averagePrice * buyAmount) / orderStatus.amount) *
+									orderStatus.filled,
 						})
 						transactionStorage.setItem(
 							startupData.timestamp.toString(),
@@ -338,10 +401,12 @@ const tick = async (): Promise<void> => {
 					} else {
 						delete openOrders[key]
 						const buyId = key
+						const currentBalance = openOrder.currentBalance
 						openOrders[buyId] = {
 							time: dateFormatted,
 							orderId: orderStatus.id,
 							type: IndicationType.SELL,
+							currentBalance: currentBalance,
 							buyPrice: openOrder.buyPrice,
 							buyAmount: orderStatus.amount,
 							averagePrice: orderStatus.average || openOrder.averagePrice,
@@ -353,7 +418,10 @@ const tick = async (): Promise<void> => {
 			}
 		}
 
-		if (Object.keys(currentBuys).length < config.concurrentOrders) {
+		if (
+			Object.keys(currentBuys).length < config.concurrentOrders &&
+			amountToBuyFor > 0
+		) {
 			const priceDetails = await get12hPriceDetails()
 			try {
 				const maxBuyPrice =
@@ -364,23 +432,37 @@ const tick = async (): Promise<void> => {
 					const analyzeBuyResult = analyzeCoppock(coppockValues)
 					switch (analyzeBuyResult) {
 						case IndicationType.BUY: {
-							const buyOrder = await createBuyOrder(buyAmount)
+							const buyOrder = await createBuyOrder(amountToBuyFor)
 							try {
 								if (buyOrder.status === 'closed') {
+									const newBalance = await getBalance()
+									const amountFee =
+										buyOrder.fee.currency === config.coin.shortName
+											? buyOrder.fee.cost
+											: 0
+									let buyAmount = buyOrder.filled - amountFee
+									if (buyAmount > newBalance.currentCoin) {
+										buyAmount = newBalance.currentCoin
+									}
 									const buyId = `${config.coin.shortName}${Date.now()}`
 									const atrValue = runATRAlgorithm(coinHistory)
+									const buyCost =
+										buyOrder.fee.currency === config.stableCoin.shortName
+											? buyOrder.cost - buyOrder.fee.cost
+											: buyOrder.cost
 									buySellHistory.unshift({
 										time: dateFormatted,
 										status: IndicationType.BUY,
-										buyAmount: buyOrder.amount,
-										buyCost: buyOrder.cost,
+										coin: config.coin.shortName,
+										buyAmount: buyAmount,
+										buyCost: buyCost,
 										averagePrice: averagePrice,
 									})
 									atrValues.unshift({ atr: atrValue, price: averagePrice })
 									currentBuys[buyId] = {
 										time: dateFormatted,
-										buyPrice: buyOrder.cost,
-										buyAmount: buyOrder.amount,
+										buyPrice: buyCost,
+										buyAmount: buyAmount,
 										averagePrice: averagePrice,
 										atr: atrValue,
 									}
@@ -413,6 +495,7 @@ const tick = async (): Promise<void> => {
 										time: dateFormatted,
 										orderId: buyOrder.id,
 										type: IndicationType.BUY,
+										currentBalance: balance.currentCoin,
 										buyPrice: buyOrder.cost,
 										buyAmount: buyOrder.amount,
 										averagePrice: averagePrice,
@@ -420,7 +503,7 @@ const tick = async (): Promise<void> => {
 									}
 									localStorage.setItem('openOrders', JSON.stringify(openOrders))
 								} else {
-									currentStatus =
+									currentBuyStatus =
 										'Buy order got canceled, waiting for new indication to buy'
 								}
 							} catch (error) {
@@ -434,13 +517,13 @@ const tick = async (): Promise<void> => {
 							break
 					}
 				} else {
-					currentStatus = `Average price is above the buy limit (${maxBuyPrice} ${config.stableCoin.shortName})`
+					currentBuyStatus = `Average price is above the buy limit (${maxBuyPrice} ${config.stableCoin.shortName})`
 				}
 			} catch (error) {
 				logError(`Get price details error:  ${error}`)
 			}
 		} else {
-			currentStatus = `Concurrent orders limit(${config.concurrentOrders}) is reached`
+			currentBuyStatus = `Concurrent orders limit(${config.concurrentOrders}) is reached`
 		}
 
 		if (Object.keys(currentBuys).length > 0) {
@@ -457,13 +540,22 @@ const tick = async (): Promise<void> => {
 						const sellOrder = await createSellOrder(currentBuy.buyAmount)
 						try {
 							if (sellOrder.status === 'closed') {
+								const sellAmount =
+									sellOrder.fee.currency === config.coin.shortName
+										? sellOrder.filled - sellOrder.fee.cost
+										: sellOrder.filled
+								const sellCost =
+									sellOrder.fee.currency === config.stableCoin.shortName
+										? sellOrder.cost - sellOrder.fee.cost
+										: sellOrder.cost
 								buySellHistory.unshift({
 									time: dateFormatted,
 									status: IndicationType.SELL,
-									buyAmount: sellOrder.amount,
-									buyCost: sellOrder.cost,
+									coin: config.coin.shortName,
+									buyAmount: sellAmount,
+									buyCost: sellCost,
 									averagePrice: averagePrice,
-									result: sellOrder.cost - currentBuy.buyPrice,
+									result: sellCost - currentBuy.averagePrice * sellAmount,
 								})
 								currentSellStatus = ''
 								delete currentBuys[key]
@@ -482,7 +574,7 @@ const tick = async (): Promise<void> => {
 									cost: sellOrder.cost,
 									fee: sellOrder.fee.cost,
 									feeCurrency: sellOrder.fee.currency,
-									result: sellOrder.cost - currentBuy.buyPrice,
+									result: sellOrder.cost - currentBuy.averagePrice * sellAmount,
 								})
 								transactionStorage.setItem(
 									startupData.timestamp.toString(),
@@ -494,6 +586,7 @@ const tick = async (): Promise<void> => {
 									time: dateFormatted,
 									orderId: sellOrder.id,
 									type: IndicationType.SELL,
+									currentBalance: balance.currentCoin,
 									buyPrice: currentBuy.buyPrice,
 									buyAmount: sellOrder.amount,
 									averagePrice: averagePrice,
@@ -523,7 +616,7 @@ const tick = async (): Promise<void> => {
 
 		displayCurrentValueHeader(startupData.time, dateFormatted, coinHistory[0])
 		logCurrentCoppockValue(coppockValues[0] || 0)
-		logStatus(currentStatus, currentSellStatus)
+		logStatus(currentBuyStatus, currentSellStatus)
 		logBalance(newBalance.total)
 		logCurrentBuys(currentBuys)
 		logOpenOrders(openOrders)

@@ -27,6 +27,18 @@
 			},
 			"required": ["shortName", "fullName"]
 		},
+		"minTradeAmount": {
+			"type": "number",
+			"description": "Minimum allowed trade of assets at exchange. I.e 0.0001 ETH at Binance"
+		},
+		"minOrderSize": {
+			"type": "number",
+			"description": "Minimum allowed order size at exchange. I.e 10 USDT at Binance"
+		},
+		"minGainPercentage": {
+			"type": "number",
+			"description": "Minimum gain percentage to sell"
+		},
 		"allocation": {
 			"type": "number",
 			"description": "Allocation of assets at exchange"
@@ -83,6 +95,9 @@
 	"required": [
 		"coin",
 		"stableCoin",
+		"minTradeAmount",
+		"minOrderSize",
+		"minGainPercentage",
 		"allocation",
 		"tickInterval",
 		"concurrentOrders",

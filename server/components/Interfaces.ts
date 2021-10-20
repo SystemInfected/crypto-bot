@@ -9,10 +9,18 @@ export interface GlobalConfig {
 		shortName: string
 		fullName: string
 	}
+	/** Minimum allowed trade of assets at exchange.
+	 *I.e 0.0001 ETH at Binance */
+	minTradeAmount: number
+	/** Minimum allowed order size at exchange.
+	 *I.e 10 USDT at Binance */
+	minOrderSize: number
+	/** Minimum gain percentage to sell */
+	minGainPercentage: number
 	/** Allocation of assets at exchange */
 	allocation: number
 	/** "Interval (minutes) inbetween each request for current values.
-	 * Allowed intervals for Binance is 1m, 3m, 5m, 15m, 30m */
+	 *I.e. allowed intervals for Binance is 1m, 3m, 5m, 15m, 30m */
 	tickInterval: number
 	/** Max amount of orders at the same time */
 	concurrentOrders: number
@@ -59,6 +67,7 @@ export interface OpenOrder {
 		time: string
 		orderId: string
 		type: IndicationType
+		currentBalance: number
 		buyPrice: number
 		buyAmount: number
 		averagePrice: number

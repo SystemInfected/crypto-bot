@@ -46,6 +46,8 @@ exchangeClient.setSandboxMode(true) // For testing in sandbox environment
 	"shortName": "USDT",
 	"fullName": "Tether"
 },
+"minTradeAmount": 0.0001,
+"minOrderSize": 10,
 "allocation": 0.1,
 "tickInterval": 3,
 "concurrentOrders": 3,
