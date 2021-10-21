@@ -5,7 +5,7 @@ export const getAmountToBuy = (
 	currentPrice: CoinValuesProps,
 	balance: BalanceResponse
 ): number => {
-	const fluctuationMultiplier = 1.05
+	const fluctuationMultiplier = 1.2
 	let amountToBuyFor = balance.currentStableCoin * config.allocation
 	if (amountToBuyFor < config.minOrderSize * fluctuationMultiplier) {
 		if (
