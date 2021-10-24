@@ -1,6 +1,6 @@
-import { Balance, OHLCV, Order } from 'ccxt'
+import { Balance, Order } from 'ccxt'
 import { config } from '../utils/ValidatedConfig'
-import { TickerValue } from './Interfaces'
+import { CoinValuesProps, TickerValue } from './Interfaces'
 import exchangeClient from '../config/config'
 
 export const getBalance = async (): Promise<{
@@ -46,7 +46,7 @@ export const getOrderStatus = async (orderId: string): Promise<Order> => {
 	return orderStatus
 }
 
-export const getPrice = async (): Promise<TickerValue> => {
+export const getPrice = async (): Promise<CoinValuesProps> => {
 	const lookBack = Math.floor(Date.now()) - config.tickInterval * 60 * 1000 * 3
 	const priceData = await exchangeClient.fetchOHLCV(
 		`${config.coin.shortName}/${config.stableCoin.shortName}`,
@@ -62,24 +62,29 @@ export const getPrice = async (): Promise<TickerValue> => {
 		close: priceData[i][4],
 		volume: priceData[i][5],
 	}
-	return price
+
+	const averagePrice = (price.open + price.high + price.low + price.close) / 4
+	const currentPrice: CoinValuesProps = {
+		timestamp: price.timestamp,
+		open: price.open,
+		high: price.high,
+		low: price.low,
+		close: price.close,
+		volume: price.volume,
+		average: averagePrice,
+	}
+
+	return currentPrice
 }
 
-export const get12hPriceDetails = async (): Promise<{
-	timestamp: number
-	open: number
-	high: number
-	low: number
-	close: number
-	volume: number
-}> => {
+export const getMaxBuyPrice = async (time: string): Promise<number> => {
 	const lookBack = Math.floor(Date.now()) - 1 * 3600 * 1000 * 24 // 1 days back
 	const price = await exchangeClient.fetchOHLCV(
 		`${config.coin.shortName}/${config.stableCoin.shortName}`,
-		'12h',
+		time,
 		lookBack
 	)
-	return {
+	const priceDetails = {
 		timestamp: price[price.length - 1][0],
 		open: price[price.length - 1][1],
 		high: price[price.length - 1][2],
@@ -87,9 +92,13 @@ export const get12hPriceDetails = async (): Promise<{
 		close: price[price.length - 1][4],
 		volume: price[price.length - 1][5],
 	}
+	const maxBuyPrice =
+		priceDetails.open +
+		(priceDetails.close - priceDetails.open) * config.falsePositiveBuffer
+	return maxBuyPrice
 }
 
-export const getPriceHistory = async (): Promise<OHLCV[]> => {
+export const getPriceHistory = async (): Promise<CoinValuesProps[]> => {
 	const lookBack =
 		Math.floor(Date.now()) -
 		(config.minAlgorithmValues + 1) * (config.tickInterval * 60000)
@@ -98,5 +107,20 @@ export const getPriceHistory = async (): Promise<OHLCV[]> => {
 		`${config.tickInterval}m`,
 		lookBack
 	)
-	return history.slice(1, config.minAlgorithmValues)
+	const historyData = history.slice(1, config.minAlgorithmValues)
+	const historyResponse = historyData.map((history) => {
+		const averagePrice = (history[1] + history[2] + history[3] + history[4]) / 4
+		const coinValue: CoinValuesProps = {
+			timestamp: history[0],
+			open: history[1],
+			high: history[2],
+			low: history[3],
+			close: history[4],
+			volume: history[5],
+			average: averagePrice,
+		}
+		return coinValue
+	})
+
+	return historyResponse
 }
