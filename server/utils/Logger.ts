@@ -7,7 +7,7 @@ require('dotenv').config()
 
 export const logHeader = (time: string): void => {
 	console.log(
-		chalk.whiteBright.bold('Crypto Bot v. 1.0.0') +
+		chalk.whiteBright.bold('Crypto Bot v. 1.0.1') +
 			chalk.whiteBright(
 				` | Started: ${time.toString()}\nGraph frontend: http://localhost:${
 					process.env.PORT
