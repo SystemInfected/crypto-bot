@@ -47,6 +47,7 @@ import {
 	logOpenOrders,
 	logStatus,
 } from './utils/Logger'
+import { Balance } from 'ccxt'
 
 const localStorage = new LocalStorage('./storage')
 const transactionStorage = new LocalStorage('./transactions')
@@ -121,7 +122,7 @@ const tick = async (): Promise<void> => {
 		transactionStorage.getItem(startupData.timestamp.toString()) || '[]'
 	)
 	currentBuyStatus = 'Waiting for indication to buy'
-	const currentPrice = await getPrice()
+	const currentPrice = await getPrice(config.coin.shortName)
 	try {
 		displayLoadingHeader(startupData.time)
 
@@ -361,7 +362,30 @@ const tick = async (): Promise<void> => {
 						const analyzeBuyResult = analyzeCoppock(coppockValues)
 						switch (analyzeBuyResult) {
 							case IndicationType.BUY: {
-								const buyOrder = await createBuyOrder(amountToBuy)
+								if (config.exchangeCoin) {
+									const exchangeCoinPrice = await getPrice(
+										config.exchangeCoin.shortName
+									)
+									const exchangeCoinBalance =
+										balance.total[
+											config.exchangeCoin.shortName as keyof Balance
+										]
+									if (
+										exchangeCoinBalance <
+										config.exchangeCoin.minAmount / exchangeCoinPrice.close
+									) {
+										const amountToBuy =
+											config.exchangeCoin.orderAmount / exchangeCoinPrice.close
+										await createBuyOrder(
+											config.exchangeCoin.shortName,
+											amountToBuy
+										)
+									}
+								}
+								const buyOrder = await createBuyOrder(
+									config.coin.shortName,
+									amountToBuy
+								)
 								try {
 									if (buyOrder.status === 'closed') {
 										const newBalance = await getBalance()

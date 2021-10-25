@@ -18,10 +18,13 @@ export const getBalance = async (): Promise<{
 	}
 }
 
-export const createBuyOrder = async (buyAmount: number): Promise<Order> => {
+export const createBuyOrder = async (
+	coin: string,
+	buyAmount: number
+): Promise<Order> => {
 	await exchangeClient.loadMarkets()
 	const buyOrder = await exchangeClient.createMarketOrder(
-		`${config.coin.shortName}/${config.stableCoin.shortName}`,
+		`${coin}/${config.stableCoin.shortName}`,
 		'buy',
 		buyAmount
 	)
@@ -46,10 +49,10 @@ export const getOrderStatus = async (orderId: string): Promise<Order> => {
 	return orderStatus
 }
 
-export const getPrice = async (): Promise<CoinValuesProps> => {
+export const getPrice = async (coin: string): Promise<CoinValuesProps> => {
 	const lookBack = Math.floor(Date.now()) - config.tickInterval * 60 * 1000 * 3
 	const priceData = await exchangeClient.fetchOHLCV(
-		`${config.coin.shortName}/${config.stableCoin.shortName}`,
+		`${coin}/${config.stableCoin.shortName}`,
 		`${config.tickInterval}m`,
 		lookBack
 	)

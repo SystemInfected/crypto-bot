@@ -27,6 +27,27 @@
 			},
 			"required": ["shortName", "fullName"]
 		},
+		"exchangeCoin": {
+			"type": "object",
+			"description": "(OPTIONAL) Exchange specific coin to use for fees. I.e Binance use Binance coin (BNB) for fees with a 25% discount",
+			"properties": {
+				"shortName": {
+					"type": "string"
+				},
+				"fullName": {
+					"type": "string"
+				},
+				"minAmount": {
+					"type": "number",
+					"description": "Minimum amount in stable coin before buffering more"
+				},
+				"orderAmount": {
+					"type": "number",
+					"description": "Amount in stable coin to buffering"
+				}
+			},
+			"required": ["shortName", "fullName", "minAmount"]
+		},
 		"minTradeAmount": {
 			"type": "number",
 			"description": "Minimum allowed trade of assets at exchange. I.e 0.0001 ETH at Binance"

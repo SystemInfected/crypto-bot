@@ -46,6 +46,12 @@ exchangeClient.setSandboxMode(true) // For testing in sandbox environment
 	"shortName": "USDT",
 	"fullName": "Tether"
 },
+"exchangeCoin": {
+	"shortName": "BNB",
+	"fullName": "Binance Coin",
+	"minAmount": 1,
+	"orderAmount": 10
+},
 "minTradeAmount": 0.0001,
 "minOrderSize": 10,
 "allocation": 0.1,

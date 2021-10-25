@@ -11,6 +11,15 @@ export interface GlobalConfig {
 		shortName: string
 		fullName: string
 	}
+	/** (OPTIONAL) Exchange specific coin to use for fees. I.e Binance use Binance coin (BNB) for fees with a 25% discount */
+	exchangeCoin?: {
+		shortName: string
+		fullName: string
+		/** Minimum amount in stable coin before buffering more */
+		minAmount: number
+		/** Amount in stable coin to buffering */
+		orderAmount: number
+	}
 	/** Minimum allowed trade of assets at exchange.
 	 *I.e 0.0001 ETH at Binance */
 	minTradeAmount: number
