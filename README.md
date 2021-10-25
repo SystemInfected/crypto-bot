@@ -83,7 +83,7 @@ cd ..
 npm run start
 ```
 
-### Export Transactions
+### Export transactions
 
 _For tax reporting etc._  
 To export all transactions run the following command:
