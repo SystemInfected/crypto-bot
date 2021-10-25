@@ -18,6 +18,12 @@ const emptyConfig: GlobalConfig = {
 		shortName: '',
 		fullName: '',
 	},
+	exchangeCoin: {
+		shortName: '',
+		fullName: '',
+		minAmount: 0,
+		orderAmount: 0,
+	},
 	minTradeAmount: 0,
 	minOrderSize: 0,
 	minGainPercentage: 0,
