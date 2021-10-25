@@ -82,3 +82,14 @@ npm run build
 cd ..
 npm run start
 ```
+
+### Export Transactions
+
+_For tax reporting etc._  
+To export all transactions run the following command:
+
+```
+npm run get-transactions
+```
+
+This will combine all transactions into a .csv file

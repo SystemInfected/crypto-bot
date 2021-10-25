@@ -6,6 +6,7 @@
 		"build": "rimraf ./build && tsc",
 		"dev": "npm run build && node build/index.js && nodemon",
 		"start": "npm run build && node build/index.js",
+		"get-transactions": "node build/getTransactions.js",
 		"test": "jest",
 		"test:dev": "jest --watchAll"
 	},
