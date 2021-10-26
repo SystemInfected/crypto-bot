@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
+import fs from 'fs'
 import { LocalStorage } from 'node-localstorage'
 require('dotenv').config()
 
@@ -118,6 +119,24 @@ const initialLoad = async (): Promise<void> => {
 }
 
 const tick = async (): Promise<void> => {
+	try {
+		if (
+			!fs.existsSync(
+				path.join(
+					__dirname,
+					'../transactions',
+					startupData.timestamp.toString()
+				)
+			)
+		) {
+			transactionStorage.setItem(
+				startupData.timestamp.toString(),
+				JSON.stringify([])
+			)
+		}
+	} catch (err) {
+		logError(err)
+	}
 	const storedTransactions: Array<StoredTransactionsProps> = JSON.parse(
 		transactionStorage.getItem(startupData.timestamp.toString()) || '[]'
 	)
