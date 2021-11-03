@@ -515,6 +515,7 @@ const tick = async (): Promise<void> => {
 		if (Object.keys(currentBuys).length > 0) {
 			currentSellStatus = 'Waiting for indication to sell'
 			for (const key in currentBuys) {
+				let hasSold = false
 				const currentBuy = currentBuys[key]
 				const analyzeSellResult = analyzeATR(
 					key,
@@ -562,6 +563,7 @@ const tick = async (): Promise<void> => {
 									startupData.timestamp.toString(),
 									JSON.stringify(storedTransactions)
 								)
+								hasSold = true
 							} else if (sellOrder.status === 'open') {
 								const buyId = `${config.coin.shortName}${Date.now()}-PARTIAL`
 								openOrders[buyId] = {
@@ -590,6 +592,9 @@ const tick = async (): Promise<void> => {
 						break
 					default:
 						break
+				}
+				if (hasSold) {
+					break
 				}
 			}
 		}
