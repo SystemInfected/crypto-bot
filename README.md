@@ -30,6 +30,7 @@ const exchangeClient = new ccxt.yourselectedexchange({
 	secret: process.env.API_SECRET,
 	password: process.env.API_PASSWORD,
 	enableRateLimit: true,
+	timeout: 30000,
 })
 exchangeClient.setSandboxMode(true) // For testing in sandbox environment
 ```

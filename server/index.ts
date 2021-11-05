@@ -613,20 +613,20 @@ const tick = async (): Promise<void> => {
 	}
 }
 
-const run = (): void => {
+const run = async (): Promise<void> => {
 	const dateObject = new Date()
 	const dateFormatted = dateObject.toLocaleString()
 	startupData.time = dateFormatted
 	startupData.timestamp = dateObject.getTime()
 
-	initialLoad()
-		.then(() => {
-			tick()
-			setInterval(tick, config.tickInterval * 1000 * 60)
-		})
-		.catch((error) => {
-			logError(`Initial load error:  ${error}`)
-		})
+	try {
+		await initialLoad()
+
+		tick()
+		setInterval(tick, config.tickInterval * 1000 * 60)
+	} catch (error) {
+		logError(`Initial load error:  ${error}`)
+	}
 }
 
 clearLog()
