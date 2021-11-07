@@ -26,7 +26,7 @@
 	"WMA": 10,
 	"atrWMA": 20,
 	"buyBuffer": 4,
-	"falsePositiveBuffer": 0.6,
+	"falsePositiveBuffer": 0.5,
 	"sellBuffer": 2,
 	"atrMultiplier": 2.5
 }

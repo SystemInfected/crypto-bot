@@ -48,7 +48,7 @@ import {
 	logOpenOrders,
 	logStatus,
 } from './utils/Logger'
-import { Balance } from 'ccxt'
+import { Balance, NetworkError } from 'ccxt'
 
 const localStorage = new LocalStorage('./storage')
 const transactionStorage = new LocalStorage('./transactions')
@@ -490,6 +490,12 @@ const tick = async (): Promise<void> => {
 										currentBuyStatus = `Concurrent orders limit(${config.concurrentOrders}) is reached`
 									}
 								} catch (error) {
+									if (error instanceof NetworkError) {
+										logError('Network error, trying again.')
+										// eslint-disable-next-line @typescript-eslint/no-use-before-define
+										setTimeout(() => run(), 30000)
+										return
+									}
 									logError(`Create buy order error:  ${error}`)
 								}
 								break
@@ -503,6 +509,12 @@ const tick = async (): Promise<void> => {
 						currentBuyStatus = `Average price is above the buy limit (${maxBuyPrice} ${config.stableCoin.shortName})`
 					}
 				} catch (error) {
+					if (error instanceof NetworkError) {
+						logError('Network error, trying again.')
+						// eslint-disable-next-line @typescript-eslint/no-use-before-define
+						setTimeout(() => run(), 30000)
+						return
+					}
 					logError(`Get price details error:  ${error}`)
 				}
 			} else {
@@ -584,6 +596,12 @@ const tick = async (): Promise<void> => {
 									'Sell order got canceled, waiting for new indication to sell'
 							}
 						} catch (error) {
+							if (error instanceof NetworkError) {
+								logError('Network error, trying again.')
+								// eslint-disable-next-line @typescript-eslint/no-use-before-define
+								setTimeout(() => run(), 30000)
+								return
+							}
 							logError(`Create sell order error:  ${error}`)
 						}
 						break
@@ -609,6 +627,12 @@ const tick = async (): Promise<void> => {
 		logOpenOrders(openOrders)
 		logBuySellHistory(buySellHistory)
 	} catch (error) {
+		if (error instanceof NetworkError) {
+			logError('Network error, trying again.')
+			// eslint-disable-next-line @typescript-eslint/no-use-before-define
+			setTimeout(() => run(), 30000)
+			return
+		}
 		logError(`Get price error:  ${error}`)
 	}
 }
@@ -625,6 +649,12 @@ const run = async (): Promise<void> => {
 		tick()
 		setInterval(tick, config.tickInterval * 1000 * 60)
 	} catch (error) {
+		if (error instanceof NetworkError) {
+			logError('Network error, trying again.')
+			// eslint-disable-next-line @typescript-eslint/no-use-before-define
+			setTimeout(() => run(), 30000)
+			return
+		}
 		logError(`Initial load error:  ${error}`)
 	}
 }
